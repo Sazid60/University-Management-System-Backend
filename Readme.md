@@ -321,16 +321,31 @@ _Data Model:_
 
 ## 11-8 Refactor user validation , student route ,controller and service
 
-- zod Infer :
+What is z.infer<>?
+z.infer<> is a TypeScript utility provided by Zod that infers the TypeScript type from a Zod schema.
+
+2️⃣ What is typeof User?
+User is assumed to be a Zod schema.
+typeof User refers to the actual schema definition, not an instance of it.
+
+- we will fist create validation and the we will create automatic t5ype generation using z.infer using the validation
+- We will not always send property form client, sometimes properties will be created in server automatically.
+- If we can make the validation schema and the interface aligned we will be able to use infer.
+  ![alt text](<WhatsApp Image 2025-03-13 at 11.56.24_fdefad38.jpg>)
+- The id will be generated automatically it will not come from client
+- password will be auto generated or admin can set the pass manually
+  ![alt text](<WhatsApp Image 2025-03-13 at 11.58.18_31ec4bbd.jpg>)
+- The Role will also be handled by server i mean when the right api is hit the right role will ber fixed by server
+- as some fields are eliminated we will not use infer. we will use raw
 
 ```ts
-import { z } from "zod";
+import { z } from 'zod';
 
 const User = z.object({
   username: z.string(),
 });
 
-User.parse({ username: "Ludwig" });
+User.parse({ username: 'Ludwig' });
 
 // extract the inferred type
 type User = z.infer<typeof User>;
@@ -350,15 +365,15 @@ type User = z.infer<typeof User>;
 
 ```ts
 // user.validation.ts
-import { z } from "zod";
+import { z } from 'zod';
 
 const userValidationSchema = z.object({
   password: z
     .string({
-      required_error: "Password must be string",
-      invalid_type_error: "Name must be a string",
+      required_error: 'Password must be string',
+      invalid_type_error: 'Name must be a string',
     })
-    .max(20, { message: "Password can not be more than 20 characters" })
+    .max(20, { message: 'Password can not be more than 20 characters' })
     .optional(),
   //   needsPasswordChange: z.boolean().optional().default(true),
   //   role: z.enum(['student', 'admin', 'faculty']),
@@ -415,7 +430,7 @@ try {
   // send response
   res.status(200).json({
     success: true,
-    message: "Students are retrieved successfully",
+    message: 'Students are retrieved successfully',
     data: result,
   });
 } catch (err) {
@@ -436,7 +451,7 @@ try {
 // @ts-ignore
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   const statusCode = 500;
-  const message = err.message || "Something Went Wrong";
+  const message = err.message || 'Something Went Wrong';
 
   return res.status(statusCode).json({
     success: false,
@@ -456,17 +471,17 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response } from 'express';
 
 // global error handler
 const globalErrorHandler = (
   err: any,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const statusCode = 500;
-  const message = err.message || "Something Went Wrong";
+  const message = err.message || 'Something Went Wrong';
 
   return res.status(statusCode).json({
     success: false,
@@ -481,11 +496,11 @@ export default globalErrorHandler;
 ```ts
 // app.ts
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import express, { Application, Request, Response } from "express";
-import cors from "cors";
-import { StudentRoutes } from "./app/modules/students/student.route";
-import { userRoutes } from "./app/modules/user/user.route";
-import globalErrorHandler from "./app/middlewares/globalErrorHandler";
+import express, { Application, Request, Response } from 'express';
+import cors from 'cors';
+import { StudentRoutes } from './app/modules/students/student.route';
+import { userRoutes } from './app/modules/user/user.route';
+import globalErrorHandler from './app/middlewares/globalErrorHandler';
 
 const app: Application = express();
 
@@ -494,10 +509,10 @@ app.use(express.json());
 app.use(cors());
 
 // application routes
-app.use("/api/v1/students", StudentRoutes);
-app.use("/api/v1/users", userRoutes);
+app.use('/api/v1/students', StudentRoutes);
+app.use('/api/v1/users', userRoutes);
 
-app.get("/", (req: Request, res: Response) => {
+app.get('/', (req: Request, res: Response) => {
   const a = 10;
   res.send(a);
 });
@@ -521,17 +536,17 @@ export default app;
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response } from 'express';
 
 // global error handler
 const globalErrorHandler = (
   err: any,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const statusCode = 500;
-  const message = err.message || "Something Went Wrong";
+  const message = err.message || 'Something Went Wrong';
 
   return res.status(statusCode).json({
     success: false,
@@ -550,14 +565,14 @@ export default globalErrorHandler;
 /* eslint-disable no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { NextFunction, Request, Response } from "express";
-import httpStatus from "http-status";
+import { NextFunction, Request, Response } from 'express';
+import httpStatus from 'http-status';
 
 const notFound = (req: Request, res: Response, next: NextFunction) => {
   return res.status(httpStatus.NOT_FOUND).json({
     success: false,
-    message: "API NOT FOUND",
-    error: "",
+    message: 'API NOT FOUND',
+    error: '',
   });
 };
 
@@ -567,7 +582,7 @@ export default notFound;
 - we can deal with success message as well
 
 ```ts
-import { Response } from "express";
+import { Response } from 'express';
 
 type TResponse<T> = {
   statusCode: number;
