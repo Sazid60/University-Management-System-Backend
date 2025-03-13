@@ -1,0 +1,50 @@
+{
+  "name": "module-4-foundation-of-mongoose",
+  "version": "1.0.0",
+  "description": "- Mongoose is a Powerful Object Data Modeling Library For MongoDB (ODM). Its modeling data as object\r - We can store any kind of data in mongodb. I mean different unstructured data we can store\r - We can not work with the unstructured data directly because of different different property as query is not possible in client side thats why we need the mongoose library,\r   ![alt text](image.png)\r - If the data is valid mongoose will allow to work with otherwise it will not allow. This means it ensures data integrity. This means the modeling i have made if the same modeled data is not sent by client it will not allow to insert\r   ![alt text](image-1.png)\r - Mongoose is connected with mongodb using mongodb driver.\r - The set data is first done mapping and check with our made model if the model is correct it will allow.\r   ![alt text](image-2.png)",
+  "main": "index.js",
+  "scripts": {
+    "start:prod": "node ./dist/server.js",
+    "start:dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "prettier": "prettier --ignore-path .gitignore --write \"./src/**/*.+(js|ts|json)\"",
+    "prettier:fix": "npx prettier --write src",
+    "format": "prettier . --write"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "joi": "^17.13.3",
+    "mongodb": "^6.13.1",
+    "mongoose": "^8.10.1",
+    "validator": "^13.12.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.21.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/eslint__js": "^8.42.3",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.5",
+    "@types/validator": "^13.12.2",
+    "eslint": "^9.14.0",
+    "eslint-config-prettier": "^10.0.1",
+    "globals": "^16.0.0",
+    "i": "^0.3.7",
+    "npm": "^11.1.0",
+    "prettier": "^3.5.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.25.0"
+  }
+}
