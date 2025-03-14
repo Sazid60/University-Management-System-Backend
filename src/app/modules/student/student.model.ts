@@ -7,9 +7,8 @@ import {
   // StudentMethods,
 } from './student.interface';
 // import validator from 'validator';
-import bcrypt from 'bcrypt';
+
 import { StudentModel } from './student.interface';
-import config from '../../config';
 
 const userNameSchema = new Schema<TUserName>({
   firstName: {
@@ -110,11 +109,6 @@ const studentSchema = new Schema<TStudent, StudentModel>(
       unique: true,
       ref: 'User',
     },
-    password: {
-      type: String,
-      required: [true, 'Password is Required'],
-      maxlength: [20, 'Password can not be more than 20 char'],
-    },
     name: {
       type: userNameSchema,
       required: [true, 'Name is Required'],
@@ -175,30 +169,6 @@ const studentSchema = new Schema<TStudent, StudentModel>(
     },
   },
 );
-
-// _________________________________  middleware/hook (when we will do something on schema) this will work on create() or save() function
-// Document Middleware
-// Pre save middleware
-studentSchema.pre('save', async function (next) {
-  // console.log(this, 'pre hook: we will save the data');
-
-  // hashing password and save into db
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
-  const user = this;
-  // password field er data niye change kore abr password field e set kore dicci
-  user.password = await bcrypt.hash(
-    user.password,
-    Number(config.bcrypt_salt_round),
-  );
-  next();
-});
-// Post save middleware
-//Post Save Hook/Middleware
-studentSchema.post('save', function (doc, next) {
-  doc.password = '';
-  // console.log(this, 'post hook : we saved our the data');
-  next();
-});
 
 // __________________________Query Middleware
 
