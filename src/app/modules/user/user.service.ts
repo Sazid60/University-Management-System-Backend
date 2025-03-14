@@ -8,6 +8,8 @@ const createStudentIntoDB = async (password: string, studentData: TStudent) => {
   // create a user object
 
   const userData: Partial<TUser> = {};
+  // Partial is used since empty object is added and the data will be assigned
+  //  the assigned data are  //   password: //   role: //   id:
 
   // // if password is not given use default password
   // if (!password) {
