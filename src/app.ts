@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import { StudentRoutes } from './app/modules/student/student.route';
 import { UserRoutes } from './app/modules/user/user.route';
 
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
+import notFound from './app/middlewares/notFound';
 const app: Application = express();
 
 // parser
@@ -20,7 +22,11 @@ const getAController = (req: Request, res: Response) => {
 
 app.get('/', getAController);
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-expect-error
 app.use(globalErrorHandler);
+
+// not found route
+// @ts-expect-error
+app.use(notFound);
+
 export default app;
