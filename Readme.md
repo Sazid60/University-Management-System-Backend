@@ -530,6 +530,8 @@ export default app;
 
 ## 11-12 Create not found route & sendResponse utility
 
+![alt text](<WhatsApp Image 2025-03-15 at 11.21.15_04b25cb5.jpg>)
+
 - For Handling error status code we can use this npm
   [STATUS-CODE-HANDLING NPM](https://www.npmjs.com/package/http-status)
 - using this npm
