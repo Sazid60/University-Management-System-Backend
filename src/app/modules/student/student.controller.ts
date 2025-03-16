@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { StudentServices } from './student.service';
+import status from 'http-status';
+import sendResponse from '../../utils/sendResponse';
 // import studentValidationSchema from './student.validation';
 
 // (req: Request, res: Response) will come from express typeScript type declaration
@@ -11,11 +13,17 @@ const getAllStudents = async (
 ) => {
   try {
     const result = await StudentServices.getAllStudentsFromDB();
-    res.status(200).json({
+    sendResponse(res, {
+      statusCode: status.OK,
       success: true,
       message: 'Student are retrieved Successfully',
       data: result,
     });
+    // res.status(200).json({
+    //   success: true,
+    //   message: 'Student are retrieved Successfully',
+    //   data: result,
+    // });
   } catch (error) {
     // res.status(500).json({
     //   success: false,
@@ -33,11 +41,17 @@ const getSingleStudent = async (
   try {
     const { studentId } = req.params;
     const result = await StudentServices.getSingleStudentFromDB(studentId);
-    res.status(200).json({
+    sendResponse(res, {
+      statusCode: status.OK,
       success: true,
-      message: 'Single Student are retrieved Successfully',
+      message: 'Single Student is retrieved Successfully',
       data: result,
     });
+    // res.status(200).json({
+    //   success: true,
+    //   message: 'Single Student are retrieved Successfully',
+    //   data: result,
+    // });
   } catch (error) {
     // res.status(500).json({
     //   success: false,
@@ -56,11 +70,17 @@ const deleteSingleStudent = async (
   try {
     const { studentId } = req.params;
     const result = await StudentServices.deleteSingleStudentFromDB(studentId);
-    res.status(200).json({
+    sendResponse(res, {
+      statusCode: status.OK,
       success: true,
       message: 'Single Student deleted Successfully',
       data: result,
     });
+    // res.status(200).json({
+    //   success: true,
+    //   message: 'Single Student deleted Successfully',
+    //   data: result,
+    // });
   } catch (error) {
     // res.status(500).json({
     //   success: false,
