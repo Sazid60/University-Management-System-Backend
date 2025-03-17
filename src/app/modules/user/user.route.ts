@@ -1,14 +1,17 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express from 'express';
 import { UserController } from './user.controller';
+
+import { createStudentValidationSchema } from '../student/student.validation';
+import validateRequest from '../../middlewares/validateRequest';
 
 const router = express.Router();
 
-const senaBahini = (req: Request, res: Response, next: NextFunction) => {
-  console.log('I am a Sena Bahini');
-  console.log(req.body);
-  next();
-};
+// these received schema is zod Validation Schema
 
-router.post('/create-student', senaBahini, UserController.createStudent);
+router.post(
+  '/create-student',
+  validateRequest(createStudentValidationSchema),
+  UserController.createStudent,
+);
 
 export const UserRoutes = router;
