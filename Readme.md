@@ -74,3 +74,25 @@ const getSingleStudent = catchAsync(async (req, res, next) => {
   });
 });
 ```
+
+## 12-2 Implement Your Army Middleware
+
+- We will use the try catch catchAsync in utils folder
+- We will make middleware of zod and use it. Its like we will make a higher order function in middleware and we will use.
+
+#### Where will we use the zod middleware?
+
+- Since controller will validate the data after the route is being called. So we will use it in between route and controller
+
+![alt text](<WhatsApp Image 2025-03-17 at 13.40.42_1b1c28fd.jpg>)
+
+![alt text](<WhatsApp Image 2025-03-17 at 13.42.25_a84db944.jpg>)
+
+![alt text](<WhatsApp Image 2025-03-17 at 13.42.58_4cab3fbe.jpg>)
+
+![alt text](<WhatsApp Image 2025-03-17 at 13.44.41_1b75346e.jpg>)
+
+- we can use multiple middleware and will be between route and controller so that controller stays clean
+- If Any Error Occurs It Will send to the Global error handler using next() function
+
+![alt text](<WhatsApp Image 2025-03-17 at 13.49.19_d50f1701.jpg>)
