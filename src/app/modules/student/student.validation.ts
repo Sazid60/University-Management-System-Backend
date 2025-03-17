@@ -26,26 +26,34 @@ const localGuardianValidationSchema = z.object({
   address: z.string().min(1, 'Local Guardian Address Required').trim(),
 });
 
-const studentValidationSchema = z.object({
-  id: z.string().min(1, 'ID is required'),
-  user: z.string().min(1, 'User ID is required'),
-  name: userNameValidationSchema,
-  gender: z.enum(['male', 'female', 'other'], {
-    errorMap: () => ({ message: 'Gender is not valid' }),
+export const createStudentValidationSchema = z.object({
+  body: z.object({
+    password: z.string().max(20),
+    student: z.object({
+      name: userNameValidationSchema,
+      gender: z.enum(['male', 'female', 'other'], {
+        errorMap: () => ({ message: 'Gender is not valid' }),
+      }),
+      dateOfBirth: z.string().optional(),
+      email: z.string().email('Invalid email format'),
+      contactNo: z.string().min(1, 'Contact No Required').trim(),
+      emergencyContactNo: z
+        .string()
+        .min(1, 'Emergency Contact No Required')
+        .trim(),
+      bloodGroup: z
+        .enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])
+        .optional(),
+      presentAddress: z.string().min(1, 'Present Address Required').trim(),
+      permanentAddress: z.string().min(1, 'Permanent Address Required').trim(),
+      guardian: guardianValidationSchema,
+      localGuardian: localGuardianValidationSchema,
+      profileImg: z.string().min(1, 'Profile Image Required').trim(),
+      isDeleted: z.boolean().default(false),
+    }),
   }),
-  dateOfBirth: z.string().optional(),
-  email: z.string().email('Invalid email format'),
-  contactNo: z.string().min(1, 'Contact No Required').trim(),
-  emergencyContactNo: z.string().min(1, 'Emergency Contact No Required').trim(),
-  bloodGroup: z
-    .enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])
-    .optional(),
-  presentAddress: z.string().min(1, 'Present Address Required').trim(),
-  permanentAddress: z.string().min(1, 'Permanent Address Required').trim(),
-  guardian: guardianValidationSchema,
-  localGuardian: localGuardianValidationSchema,
-  profileImg: z.string().min(1, 'Profile Image Required').trim(),
-  isDeleted: z.boolean().default(false),
 });
 
-export default studentValidationSchema;
+export const StudentValidations = {
+  createStudentValidationSchema,
+};
