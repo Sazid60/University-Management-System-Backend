@@ -234,3 +234,19 @@ export default app;
 - If Any Error Occurs It Will send to the Global error handler using next() function
 
 ![alt text](<WhatsApp Image 2025-03-17 at 13.49.19_d50f1701.jpg>)
+
+#### Middleware concepts
+
+```ts
+const router = express.Router();
+
+const senaBahini = (req: Request, res: Response, next: NextFunction) => {
+  console.log(req.body);
+  next();
+};
+router.post('/create-student', senaBahini, UserController.createStudent);
+
+export const userRoutes = router;
+```
+
+- we will get the data in the body we will validate data inside the middleware and we will return error from the middleware if any kind of error happens
