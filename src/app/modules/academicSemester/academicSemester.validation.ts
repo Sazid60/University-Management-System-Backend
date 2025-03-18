@@ -1,8 +1,20 @@
 import { z } from 'zod';
+import {
+  AcademicSemesterCode,
+  AcademicSemesterName,
+  Months,
+} from './academicSemester.constant';
 
 const createAcademicSemesterValidationSchema = z.object({
   body: z.object({
-    name:
+    name: z.enum([...AcademicSemesterName] as [string, ...string[]]),
+    // Validates the `name` field to be one of the predefined semester names.
+    // Since `AcademicSemesterName` is imported as an array, we use the spread operator (`...`)
+    // and cast it to `[string, ...string[]]` to ensure TypeScript infers it as a tuple.
+    year: z.date(),
+    code: z.enum([...AcademicSemesterCode] as [string, ...string[]]),
+    startMonth: z.enum([...Months] as [string, ...string[]]),
+    endMonth: z.enum([...Months] as [string, ...string[]]),
   }),
 });
 

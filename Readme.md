@@ -366,3 +366,146 @@ startMonth
 endMonth
 createdAt
 updatedAt
+![alt text](image.png)
+
+## 12-8 Handle Logical Validation of Academic Semester
+
+- academicSemester.interface.ts
+
+```ts
+export type TMonths =
+  | 'January'
+  | 'February'
+  | 'March'
+  | 'April'
+  | 'May'
+  | 'June'
+  | 'July'
+  | 'August'
+  | 'September'
+  | 'October'
+  | 'November'
+  | 'December';
+
+export type TAcademicSemesterName = 'Autumn' | 'Summer' | 'Fall';
+export type TAcademicSemesterCode = '01' | '02' | '03';
+
+export type TAcademicSemester = {
+  name: TAcademicSemesterName;
+  code: TAcademicSemesterCode;
+  year: Date;
+  startMonth: TMonths;
+  endMonth: TMonths;
+};
+```
+
+- academicSemester.constant.ts
+
+```ts
+import {
+  TAcademicSemesterCode,
+  TAcademicSemesterName,
+  TMonths,
+} from './academicSemester.interface';
+
+export const Months: TMonths[] = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+export const AcademicSemesterName: TAcademicSemesterName[] = [
+  'Autumn',
+  'Summer',
+  'Fall',
+];
+export const AcademicSemesterCode: TAcademicSemesterCode[] = ['01', '02', '03'];
+```
+
+- Constants Are Kept separate so that it can be used in validation and model. i mean it can be used in different files
+
+- academicSemester.model.ts
+
+```ts
+import { model, Schema } from 'mongoose';
+import { TAcademicSemester } from './academicSemester.interface';
+import {
+  AcademicSemesterCode,
+  AcademicSemesterName,
+  Months,
+} from './academicSemester.constant';
+
+const academicSemesterSchema = new Schema<TAcademicSemester>(
+  {
+    name: {
+      type: String,
+      required: true,
+      enum: AcademicSemesterName,
+    },
+    year: {
+      type: Date,
+      required: true,
+    },
+    code: {
+      type: String,
+      required: true,
+      enum: AcademicSemesterCode,
+    },
+    startMonth: {
+      type: String,
+      required: true,
+      enum: Months,
+    },
+    endMonth: {
+      type: String,
+      required: true,
+      enum: Months,
+    },
+  },
+  {
+    timestamps: true,
+  },
+);
+
+export const AcademicSemester = model<TAcademicSemester>(
+  'AcademicSemester',
+  academicSemesterSchema,
+);
+```
+
+- academicSemester.validation.ts
+
+```ts
+import { z } from 'zod';
+import {
+  AcademicSemesterCode,
+  AcademicSemesterName,
+  Months,
+} from './academicSemester.constant';
+
+const createAcademicSemesterValidationSchema = z.object({
+  body: z.object({
+    name: z.enum([...AcademicSemesterName] as [string, ...string[]]),
+    // Validates the `name` field to be one of the predefined semester names.
+    // Since `AcademicSemesterName` is imported as an array, we use the spread operator (`...`)
+    // and cast it to `[string, ...string[]]` to ensure TypeScript infers it as a tuple.
+    year: z.date(),
+    code: z.enum([...AcademicSemesterCode] as [string, ...string[]]),
+    startMonth: z.enum([...Months] as [string, ...string[]]),
+    endMonth: z.enum([...Months] as [string, ...string[]]),
+  }),
+});
+
+export const AcademicSemesterValidation = {
+  createAcademicSemesterValidationSchema,
+};
+```
