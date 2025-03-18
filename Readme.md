@@ -344,3 +344,25 @@ export const studentValidationSchema = z.object({
   }),
 });
 ```
+
+- Though we will make separate middleware for this
+
+## 12-4 Create Academic Semester Interface
+
+- Pattern Of Id And Password
+  ![alt text](<WhatsApp Image 2025-03-18 at 10.31.48_2cb9f842.jpg>)
+
+- Server will handle the id not will be coming from client. and password is optional might come from client
+
+### Academic Semester Data Model
+
+Academic Semester:
+
+\_id
+name
+year
+code
+startMonth
+endMonth
+createdAt
+updatedAt
