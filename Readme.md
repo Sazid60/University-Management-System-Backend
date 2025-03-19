@@ -589,3 +589,7 @@ export const AcademicSemesterServices = {
   createAcademicSemesterIntoDB,
 };
 ```
+
+## Add Admission Semester to student Interface model and Validation
+
+![alt text](<WhatsApp Image 2025-03-19 at 11.14.11_9cac0ef6.jpg>)
