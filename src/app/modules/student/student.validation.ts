@@ -34,7 +34,7 @@ export const createStudentValidationSchema = z.object({
       gender: z.enum(['male', 'female', 'other'], {
         errorMap: () => ({ message: 'Gender is not valid' }),
       }),
-      dateOfBirth: z.date().optional(),
+      dateOfBirth: z.string().optional(),
       email: z.string().email('Invalid email format'),
       contactNo: z.string().min(1, 'Contact No Required').trim(),
       emergencyContactNo: z
@@ -49,6 +49,7 @@ export const createStudentValidationSchema = z.object({
       guardian: guardianValidationSchema,
       localGuardian: localGuardianValidationSchema,
       profileImg: z.string().min(1, 'Profile Image Required').trim(),
+      admissionSemester: z.string(),
       isDeleted: z.boolean().default(false),
     }),
   }),
