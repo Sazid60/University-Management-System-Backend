@@ -368,7 +368,7 @@ createdAt
 updatedAt
 ![alt text](image.png)
 
-## 12-8 Handle Logical Validation of Academic Semester
+## Academic Semester Creation
 
 - academicSemester.interface.ts
 
@@ -507,5 +507,85 @@ const createAcademicSemesterValidationSchema = z.object({
 
 export const AcademicSemesterValidation = {
   createAcademicSemesterValidationSchema,
+};
+```
+
+- Controller routes are made same way
+
+## 12-8 Handle Logical Validation of Academic Semester
+
+- same year same semester can not be created again we have to take in our mind
+- unique true will not allow to create that academic semester again this is a problem
+- So we will find in academic semester and check if the semester is created or not if exist we will throw error
+- But The Best solution is to use (pre hook) middleware in the model
+
+// Name Year
+//2030 Autumn => Created
+// 2031 Autumn
+//2030 Autumn => XXX
+//2030 Fall => Created
+
+```ts
+academicSemesterSchema.pre('save', async function (next) {
+  // this next is mongoose's next
+  const isSemesterExist = await AcademicSemester.findOne({
+    year: this.year,
+    name: this.name,
+  });
+
+  if (isSemesterExist) {
+    throw new Error('Semester Is Already exist');
+  }
+  next();
+});
+```
+
+- There is another problem is that mismatched semester code is being added to the with the semester name. we have to keep it aligned
+
+- As This is related to business logic we will keep it into the service.ts
+- We need a mapper for doing this
+- semester Name --> semester code
+- Mapper is nothing but object
+  // Autumn 01
+  // Summer 02
+  // Fall 03
+
+```ts
+import { TAcademicSemester } from './academicSemester.interface';
+import { AcademicSemester } from './academicSemester.model';
+
+const createAcademicSemesterIntoDB = async (payload: TAcademicSemester) => {
+  //  semester Name --> semester code
+
+  // type TAcademicSemesterCodeMapper = {
+  //   Autumn: '01',
+  //   Summer: '02',
+  //   Fall: '03',
+  // }
+
+  //  we can use dynamically mapped type
+  //  this is used so that if further other semester added it automatically or dynamically gets the value
+  type TAcademicSemesterCodeMapper = {
+    [key: string]: string;
+  };
+  const academicSemesterNameCodeMapper: TAcademicSemesterCodeMapper = {
+    Autumn: '01',
+    Summer: '02',
+    Fall: '03',
+  };
+  // (academicSemesterNameCodeMapper['Fall']!== payload.code)
+  // academicSemesterNameCodeMapper['Fall']=03 this will come from mapper
+  // this wo=ill come from my payload payload.code = "01"
+  // (academicSemesterNameCodeMapper['Fall']!== 01)
+  if (academicSemesterNameCodeMapper[payload.name] !== payload.code) {
+    throw new Error('Invalid Semester Code');
+  }
+
+  const result = await AcademicSemester.create(payload);
+  return result;
+};
+
+export const AcademicSemesterServices = {
+  createAcademicSemesterIntoDB,
 };
 ```
