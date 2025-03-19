@@ -590,6 +590,14 @@ export const AcademicSemesterServices = {
 };
 ```
 
-## Add Admission Semester to student Interface model and Validation
+## 12-9 Add admission semester to student interface , model and validation
 
 ![alt text](<WhatsApp Image 2025-03-19 at 11.14.11_9cac0ef6.jpg>)
+
+### Now For Generating Id For The student
+
+![alt text](<WhatsApp Image 2025-03-19 at 13.44.39_60800d29.jpg>)
+
+- when admitting first student id database the id will be 0000 +1 = 0001
+- The student who have admitted last we have to find out to add further students id like 0001 + 1 = 0002
+- we can find the last student id using mongoose createdAt: -1 property
