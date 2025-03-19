@@ -1,4 +1,7 @@
-import { TAcademicSemester } from './academicSemester.interface';
+import {
+  TAcademicSemester,
+  TAcademicSemesterCodeMapper,
+} from './academicSemester.interface';
 import { AcademicSemester } from './academicSemester.model';
 
 const createAcademicSemesterIntoDB = async (payload: TAcademicSemester) => {
@@ -10,11 +13,6 @@ const createAcademicSemesterIntoDB = async (payload: TAcademicSemester) => {
   //   Fall: '03',
   // }
 
-  //  we can use dynamically mapped type
-  //  this is used so that if further other semester added it automatically or dynamically gets the value
-  type TAcademicSemesterCodeMapper = {
-    [key: string]: string;
-  };
   const academicSemesterNameCodeMapper: TAcademicSemesterCodeMapper = {
     Autumn: '01',
     Summer: '02',

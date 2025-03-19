@@ -22,3 +22,9 @@ export type TAcademicSemester = {
   startMonth: TMonths;
   endMonth: TMonths;
 };
+
+//  we can use dynamically mapped type
+//  this is used so that if further other semester added it automatically or dynamically gets the value
+export type TAcademicSemesterCodeMapper = {
+  [key: string]: string;
+};
