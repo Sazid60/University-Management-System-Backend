@@ -19,7 +19,7 @@ router.patch(
   AcademicFacultyController.updateAcademicFaculty,
 );
 
-router.get('/', AcademicFacultyController.getSingleAcademicFaculty);
+router.get('/', AcademicFacultyController.getAllAcademicSemester);
 
 router.get('/:facultyId', AcademicFacultyController.getSingleAcademicFaculty);
 
