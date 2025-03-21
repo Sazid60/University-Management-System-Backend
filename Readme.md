@@ -270,3 +270,7 @@ auth/forgot-password
 auth/reset-password
 
 ![alt text](image-1.png)
+
+### Academic Faculty Interface, Model and Validation Created
+
+#### Now on our work flow will be Service-Controller-Route
