@@ -270,3 +270,11 @@ auth/forgot-password
 auth/reset-password
 
 ![alt text](image-1.png)
+
+### Academic Faculty Interface, Model, controller, services and Validation Created normal way as before
+
+- delete route is skipped since it will create violation in data consistency
+- if indexing is not created we will create manually
+  ![alt text](image-2.png)
+
+#### Now on our work flow will be Service-Controller-Route
