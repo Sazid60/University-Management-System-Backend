@@ -50,6 +50,7 @@ export const createStudentValidationSchema = z.object({
       localGuardian: localGuardianValidationSchema,
       profileImg: z.string().min(1, 'Profile Image Required').trim(),
       admissionSemester: z.string(),
+      academicDepartment: z.string(),
       isDeleted: z.boolean().default(false),
     }),
   }),

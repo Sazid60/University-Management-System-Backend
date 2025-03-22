@@ -341,3 +341,48 @@ academicDepartmentSchema.pre('findOneAndUpdate', async function (next) {
   next();
 });
 ```
+
+### 13-8 How to Populate referencing fields and Implement AppError
+
+- when we are referencing a idf we do not understand what data is hold by the id. so we have to use populate method to get the dta hold by id
+
+```ts
+const getAllAcademicDepartmentsFromDB = async () => {
+  const result = await AcademicDepartment.find().populate('academicFaculty');
+  // here .populate('schema er moddhe property er nam, no the model er nam')
+  return result;
+};
+const getSingleAcademicDepartmentFromDB = async (id: string) => {
+  const result =
+    await AcademicDepartment.findById(id).populate('academicFaculty');
+  return result;
+};
+```
+
+- Id We Have to do multiple populate bwe will use chaining
+
+```ts
+const getAllStudentsFromDB = async () => {
+  const result = await Student.find()
+    .populate('academicDepartment')
+    .populate('admissionSemester');
+  return result;
+};
+```
+
+- There is a problem we are not getting the populated academicFaculty since it is nested inside academicDepartment
+- For nested things we will use nested populate
+
+```ts
+const getAllStudentsFromDB = async () => {
+  const result = await Student.find()
+    .populate('admissionSemester')
+    .populate({
+      path: 'academicDepartment',
+      populate: {
+        path: 'academicFaculty',
+      },
+    });
+  return result;
+};
+```
