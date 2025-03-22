@@ -278,3 +278,111 @@ auth/reset-password
   ![alt text](image-2.png)
 
 #### Now on our work flow will be Service-Controller-Route
+
+#### Academic Department is created in the same manner ads its like just recap
+
+### Module 13-7 Handle Department Validation when creating and updating documents
+
+    name: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+
+- here unique is not a validation so we have to handle edge case like check in database and confirm. Too much of doing this will make the app slow so we have to be concerned
+
+- we can handle this in services
+
+```ts
+const createAcademicDepartmentIntoDB = async (payload: TAcademicDepartment) => {
+  const isDepartmentExist = await AcademicDepartment.findOne({
+    name: payload.name,
+  });
+
+  if (isDepartmentExist) {
+    throw new Error('This Department Is Already exist');
+  }
+  const result = await AcademicDepartment.create(payload);
+  return result;
+};
+```
+
+- It Can be Done In Model using static or pre middleware or instance method
+
+```ts
+academicDepartmentSchema.pre('save', async function (next) {
+  // instead of AcademicDepartment We Can Use this.model.findOne() this works fin in js
+  const isDepartmentExist = await AcademicDepartment.findOne({
+    name: this.name,
+  });
+
+  if (isDepartmentExist) {
+    throw new Error('This Department Is Already exist');
+  }
+
+  next();
+});
+```
+
+- We Have a serious issue with the update like if anything is deleted but update is hit it shows update successfully but data is nul;l since id is not found. The problem is message showing. This is showing since id is not found but other mechanism is working. we have to handle this using query middleware.
+
+```ts
+// preventing update message showing if id does not exist using query middleware
+
+academicDepartmentSchema.pre('findOneAndUpdate', async function (next) {
+  const query = this.getQuery();
+  // console.log(query);
+
+  const isDepartmentExist = await AcademicDepartment.findOne(query);
+
+  if (!isDepartmentExist) {
+    throw new Error('This Department Do Not exist');
+  }
+  next();
+});
+```
+
+### 13-8 How to Populate referencing fields and Implement AppError
+
+- when we are referencing a idf we do not understand what data is hold by the id. so we have to use populate method to get the dta hold by id
+
+```ts
+const getAllAcademicDepartmentsFromDB = async () => {
+  const result = await AcademicDepartment.find().populate('academicFaculty');
+  // here .populate('schema er moddhe property er nam, no the model er nam')
+  return result;
+};
+const getSingleAcademicDepartmentFromDB = async (id: string) => {
+  const result =
+    await AcademicDepartment.findById(id).populate('academicFaculty');
+  return result;
+};
+```
+
+- Id We Have to do multiple populate bwe will use chaining
+
+```ts
+const getAllStudentsFromDB = async () => {
+  const result = await Student.find()
+    .populate('academicDepartment')
+    .populate('admissionSemester');
+  return result;
+};
+```
+
+- There is a problem we are not getting the populated academicFaculty since it is nested inside academicDepartment
+- For nested things we will use nested populate
+
+```ts
+const getAllStudentsFromDB = async () => {
+  const result = await Student.find()
+    .populate('admissionSemester')
+    .populate({
+      path: 'academicDepartment',
+      populate: {
+        path: 'academicFaculty',
+      },
+    });
+  return result;
+};
+```
