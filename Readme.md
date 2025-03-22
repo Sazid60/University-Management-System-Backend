@@ -420,3 +420,60 @@ academicDepartmentSchema.pre('findOneAndUpdate', async function (next) {
   next();
 });
 ```
+
+## 13-9 Implement Transition & RollBack
+
+- Bondhu taka dhar nise ami taka back cailam taka send korlo bkash e send hoilo na transaction failed hoilo ekei bole transaction and roll back
+
+1. Transition:
+   A transition in a database refers to the process of changing the state of the database from one consistent state to another. It occurs when a transaction executes operations like INSERT, UPDATE, DELETE, or any modification that alters data.
+
+2. Rollback:
+   A rollback is the process of undoing changes made by a transaction before it is committed. If an error occurs or a condition fails, the rollback restores the database to its previous consistent state.
+
+![alt text](<WhatsApp Image 2025-03-22 at 21.55.10_969e95be.jpg>)
+![alt text](<WhatsApp Image 2025-03-22 at 21.55.47_81dff1c3.jpg>)
+
+![alt text](<WhatsApp Image 2025-03-22 at 21.56.43_70a7396b.jpg>)
+
+![alt text](<WhatsApp Image 2025-03-22 at 21.57.29_d48933bc.jpg>)
+
+![alt text](<WhatsApp Image 2025-03-22 at 21.57.29_b59fbbea.jpg>)
+
+- Atomicity Means all the process are considered as atomic unit. either all the process are successful or all failure
+  ![alt text](<WhatsApp Image 2025-03-22 at 21.57.52_bcaaec33.jpg>)
+
+- Consistency Like the amount that should be cut from your account and added to sent account that means consistent calculation.
+  ![alt text](<WhatsApp Image 2025-03-22 at 21.58.10_1e099d91.jpg>)
+
+- Isolation means a lot of transaction my occur at a time. Each and every transaction wil be isolated and will not be affected by others.
+  ![alt text](<WhatsApp Image 2025-03-22 at 21.58.24_14f04816.jpg>)
+
+- Durability means after transaction it will be saved permanently
+  ![alt text](<WhatsApp Image 2025-03-22 at 21.58.48_5a5c6756.jpg>)
+
+#### When we will use transaction ?
+
+![alt text](<WhatsApp Image 2025-03-22 at 22.12.23_53c2e86a.jpg>)
+
+- when it is required to do two or more write operation in database at a time we have to use transaction
+- While doing read operation we do not need this so transaction is not required
+
+#### How Transaction works?
+
+- to use transaction we need an environment named startSession() of mongoose
+
+  ![alt text](<WhatsApp Image 2025-03-22 at 22.20.01_34486070.jpg>)
+  ![alt text](<WhatsApp Image 2025-03-22 at 22.24.17_13e30cbd.jpg>)
+  ![alt text](<WhatsApp Image 2025-03-22 at 22.24.48_f30e9868.jpg>)
+  ![alt text](<WhatsApp Image 2025-03-22 at 22.25.15_144ea282.jpg>)
+  ![alt text](<WhatsApp Image 2025-03-22 at 22.25.41_e4ee5843.jpg>)
+
+- If Fails we will use abortTransaction(). That means if failed it will not write in user of student collected that means rollback will happen
+  ![alt text](<WhatsApp Image 2025-03-22 at 22.26.04_f7fcad1c.jpg>)
+- If Fails we will end the session as well
+  ![alt text](<WhatsApp Image 2025-03-22 at 22.29.32_ba19a96b.jpg>)
+
+#### So The Overall process summary is
+
+![alt text](<WhatsApp Image 2025-03-22 at 22.30.50_8d1bf570.jpg>)
