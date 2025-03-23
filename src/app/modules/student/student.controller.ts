@@ -2,6 +2,8 @@ import { StudentServices } from './student.service';
 import status from 'http-status';
 import sendResponse from '../../utils/sendResponse';
 import catchAsync from '../../utils/catchAsync';
+import AppError from '../../errors/AppError';
+import { Student } from './student.model';
 // import studentValidationSchema from './student.validation';
 
 // (req: Request, res: Response) will come from express typeScript type declaration
@@ -30,11 +32,16 @@ const getAllStudents = catchAsync(async (req, res) => {
 
 const deleteSingleStudent = catchAsync(async (req, res) => {
   const { studentId } = req.params;
+  const studentExists = await Student.isUserExist(studentId);
+  // console.log(studentExists)
+  if (studentExists === null) {
+    throw new AppError(status.NOT_FOUND, 'Student not found');
+  }
   const result = await StudentServices.deleteSingleStudentFromDB(studentId);
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
-    message: 'Single Student deleted Successfully',
+    message: 'Student deleted Successfully',
     data: result,
   });
 });

@@ -31,6 +31,7 @@ const deleteSingleStudentFromDB = async (id: string) => {
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
+
     const deletedStudent = await Student.findOneAndUpdate(
       { id },
       { isDeleted: true },
