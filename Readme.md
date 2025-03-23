@@ -477,3 +477,226 @@ academicDepartmentSchema.pre('findOneAndUpdate', async function (next) {
 #### So The Overall process summary is
 
 ![alt text](<WhatsApp Image 2025-03-22 at 22.30.50_8d1bf570.jpg>)
+
+```ts
+//  create environment for isolated environment
+const session = await mongoose.startSession();
+
+// since we have to catch error while happening transaction we will use try catch
+try {
+  // start Transaction
+  session.startTransaction();
+  //  set generated Id
+  userData.id = await generateStudentId(admissionSemester);
+
+  // __________Transaction 1
+  //  create a user
+  const newUser = await User.create([userData], { session });
+  // we will give the data as array since it should be received as an array in transaction, inside the array in index 0 we will get the data. the array contains array of object
+
+  // this will make the take the response and make an array with response object
+  if (!newUser.length) {
+    throw new AppError(status.BAD_REQUEST, 'Failed To Create User');
+  }
+  // ste id,  _id as user
+  payload.id = newUser[0].id;
+  payload.user = newUser[0]._id; // reference id
+
+  // __________Transaction 2 create student
+  const newStudent = await Student.create([payload], { session });
+  if (!newStudent.length) {
+    throw new AppError(status.BAD_REQUEST, 'Failed To Create Student');
+  }
+
+  // we will do commit to save permanently
+  await session.commitTransaction();
+
+  //  now end session
+  await session.endSession();
+
+  return newStudent;
+} catch (err) {
+  await session.abortTransaction();
+  await session.endSession();
+}
+```
+
+### Transactions and Rollbacks (Simple Explanation)
+
+#### What is a Transaction?
+
+A transaction is like a small task or a set of steps that need to be done together to complete a job. If one step fails, the whole task fails. Think of it as a **"do everything or do nothing"** rule.
+
+#### Example:
+
+You want to transfer money:
+
+1. Take money out of your account.
+2. Put the money into your friend's account.
+
+Both steps must happen together. If one step fails (like the second step), the first step is canceled too.
+
+---
+
+#### What is a Rollback?
+
+A rollback means **undoing changes** if something goes wrong during the transaction. It makes sure everything goes back to how it was before the transaction started.
+
+#### Example:
+
+If the money is taken out of your account but doesn’t reach your friend’s account due to an error, the rollback will put the money back into your account.
+
+---
+
+#### Simple Idea:
+
+- A **transaction** is a promise: “Do all the steps or none at all.”
+- A **rollback** is the safety net: “If something breaks, fix everything by undoing changes.”
+
+#### 4 principles of transaction Rollback
+
+1. **Atomicity**: The entire transaction happens completely, or nothing happens at all.
+2. **Consistency**: Ensures the database moves from one valid state to another, maintaining all rules and constraints.
+3. **Isolation**: Transactions run independently without affecting each other, even if they are executed simultaneously.
+4. **Durability**: Once a transaction is completed, its changes are permanent, even if the system crashes.
+
+#### When We Will Use Transaction?
+
+- Two or More database write operation
+- We are writing in user and student collection at a time
+- To use transition rollback we can use startSession() of mongoose
+- startSession() will give isolated environment
+- We have to use startSession() to start the session If all the process is successful we have to use commitTransaction() and endSession()
+- If Fails we have to use abortTransaction() endSession()
+
+```ts
+import mongoose from 'mongoose';
+import config from '../../config';
+
+import { AcademicSemester } from '../academicSemester/academicSemester.model';
+import { TStudent } from '../students/student.interface';
+import { Student } from '../students/student.model';
+import { TUser } from './user.interface';
+
+import { User } from './user.model';
+import { generateStudentId } from './user.utils';
+import AppError from '../../errors/AppError';
+import httpStatus from 'http-status';
+
+const createStudentInDB = async (payload: TStudent, password: string) => {
+  // create a user object
+  const userData: Partial<TUser> = {};
+
+  // if password is not given use default password
+  //   if (!password) {
+  //     user.password = config.default_password as string;
+  //   } else {
+  //     user.password = password;
+  //   }
+  userData.password = password || (config.default_password as string);
+
+  //   console.log('password:', password);
+  // console.log(studentData);
+
+  // set student role
+  userData.role = 'student';
+
+  // find academic semester info
+  const admissionSemester = await AcademicSemester.findById(
+    payload.admissionSemester,
+  );
+
+  if (!admissionSemester) {
+    throw new Error('There Is No Admission Semester');
+  }
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    userData.id = await generateStudentId(admissionSemester);
+    //    create a user (transaction-1)
+    //  we have to give data for transaction as array previously it is array
+    const newUser = await User.create([userData], { session });
+
+    //    create a student
+    if (!newUser.length) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed To Create User', '');
+    }
+    //  set id, _id as user
+    payload.id = newUser[0].id; //embedding id
+    payload.user = newUser[0]._id; //reference _d
+
+    // as in 0 index the new user data will exists
+
+    //    create a student (transaction-2)
+    const newStudent = await Student.create([payload], { session });
+
+    if (!newStudent.length) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        'Failed To Create Student',
+        '',
+      );
+    }
+
+    await session.commitTransaction();
+    await session.endSession();
+
+    return newStudent;
+  } catch (err) {
+    console.log(err);
+    await session.abortTransaction();
+    await session.endSession();
+    throw new Error('Failed to create student');
+  }
+};
+
+export const UserServices = {
+  createStudentInDB,
+};
+```
+
+## 13-10 Delete student using transaction & rollback
+
+```ts
+// delete single student from db
+const deleteStudentFromDB = async (id: string) => {
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const deletedStudent = await Student.findOneAndUpdate(
+      { id },
+      { isDeleted: true },
+      { new: true, session },
+    );
+    if (!deletedStudent) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        'Failed To Delete Student',
+        '',
+      );
+    }
+
+    const deletedUser = await User.findOneAndUpdate(
+      { id },
+      { isDeleted: true },
+      { new: true, session },
+    );
+    if (!deletedUser) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed To Delete User', '');
+    }
+
+    await session.commitTransaction();
+    await session.endSession();
+
+    return deletedStudent;
+  } catch (err) {
+    console.log(err);
+    await session.abortTransaction();
+    await session.endSession();
+  }
+};
+```
