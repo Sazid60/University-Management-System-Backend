@@ -742,7 +742,7 @@ const deleteStudentFromDB = async (id: string) => {
             "lastName": "Sazid"
         },
         "guardian" : {
-            "fatherOccupation": "Kod becha"
+            "fatherOccupation": "Kochu becha"
         }
     }
 }
@@ -751,6 +751,8 @@ const deleteStudentFromDB = async (id: string) => {
 - if we do this the data will be muted. this is not also allowed
 
 ## 13-12 Implement logic to handle dynamically update non-primitive fields
+
+- We Will Separate the non-primitive data in the service file
 
 ```ts
 // update single student in db
@@ -761,11 +763,12 @@ const updateStudentIntoDB = async (id: string, payload: Partial<TStudent>) => {
     ...remainingStudentData,
   };
   /*
+  - we will send this
           "guardian" : {
             "fatherOccupation": "Kod becha"
         }
 
-        transform to 
+  - will be transformed to
         "guardian.fatherOccupation": "Kodu Becha"
         using backend
    */

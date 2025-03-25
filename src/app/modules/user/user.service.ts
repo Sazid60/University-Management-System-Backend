@@ -78,6 +78,7 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
   } catch (err) {
     await session.abortTransaction();
     await session.endSession();
+    throw new AppError(status.BAD_REQUEST, 'Filed To Delete Student');
   }
 };
 

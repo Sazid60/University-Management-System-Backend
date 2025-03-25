@@ -114,7 +114,7 @@ export const updateStudentValidationSchema = z.object({
   body: z.object({
     password: z.string().max(20).optional(),
     student: z.object({
-      name: updateUserNameValidationSchema,
+      name: updateUserNameValidationSchema.optional(),
       gender: z
         .enum(['male', 'female', 'other'], {
           errorMap: () => ({ message: 'Gender is not valid' }),
@@ -141,8 +141,8 @@ export const updateStudentValidationSchema = z.object({
         .min(1, 'Permanent Address Required')
         .trim()
         .optional(),
-      guardian: updateGuardianValidationSchema,
-      localGuardian: updateLocalGuardianValidationSchema,
+      guardian: updateGuardianValidationSchema.optional(),
+      localGuardian: updateLocalGuardianValidationSchema.optional(),
       profileImg: z.string().min(1, 'Profile Image Required').trim().optional(),
       admissionSemester: z.string().optional(),
       academicDepartment: z.string().optional(),
