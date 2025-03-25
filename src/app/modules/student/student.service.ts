@@ -3,6 +3,7 @@ import { Student } from './student.model';
 import AppError from '../../errors/AppError';
 import status from 'http-status';
 import { User } from '../user/user.model';
+import { TStudent } from './student.interface';
 
 const getAllStudentsFromDB = async () => {
   const result = await Student.find()
@@ -17,7 +18,7 @@ const getAllStudentsFromDB = async () => {
 };
 const getSingleStudentFromDB = async (id: string) => {
   // const result = await Student.findOne({ id });
-  const result = await Student.findById(id)
+  const result = await Student.findOne({ id })
     .populate('admissionSemester')
     .populate({
       path: 'academicDepartment',
@@ -25,6 +26,11 @@ const getSingleStudentFromDB = async (id: string) => {
         path: 'academicFaculty',
       },
     });
+  return result;
+};
+const updateStudentIntoDB = async (id: string, payload: Partial<TStudent>) => {
+  const result = await Student.findOneAndUpdate({ id }, payload);
+
   return result;
 };
 const deleteSingleStudentFromDB = async (id: string) => {
@@ -54,6 +60,7 @@ const deleteSingleStudentFromDB = async (id: string) => {
     await session.endSession();
     return deletedStudent;
   } catch (err) {
+    console.log(err);
     await session.abortTransaction();
     await session.endSession();
   }
@@ -63,4 +70,5 @@ export const StudentServices = {
   getAllStudentsFromDB,
   getSingleStudentFromDB,
   deleteSingleStudentFromDB,
+  updateStudentIntoDB,
 };

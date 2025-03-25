@@ -700,3 +700,98 @@ const deleteStudentFromDB = async (id: string) => {
   }
 };
 ```
+
+## 13-11 Dynamically update both primitive & non primitive fields
+
+- for data get update and delete (for user end we will use generated id)
+  ![alt text](<WhatsApp Image 2025-03-24 at 13.26.11_4f57e48d.jpg>)
+  ![alt text](<WhatsApp Image 2025-03-24 at 13.27.52_ac0cb7fa.jpg>)
+  ![alt text](<WhatsApp Image 2025-03-24 at 13.28.17_5b62e04b.jpg>)
+- Primitive field gets muted when updated
+
+- But its not allowed to muted non-primitive field because if we muted it will be replaced
+  ![alt text](<WhatsApp Image 2025-03-24 at 13.30.10_e0512b95.jpg>)
+  ![alt text](<WhatsApp Image 2025-03-24 at 13.30.33_2a62f7b4.jpg>)
+  ![alt text](<WhatsApp Image 2025-03-24 at 13.32.42_b7c17791.jpg>)
+- we can do this by frontend but its not right so we will do it by backend
+  ![alt text](<WhatsApp Image 2025-03-24 at 13.34.18_3be8f9a4.jpg>)
+- We will tell frontend to send data according to model (For Both Primitive and Non Primitive field )
+- We ask for specific field data so that all the data do not come and do not bother bandwidth much
+
+- We will not update password with all. we will update password in different route
+
+- Postman Request body
+
+```ts
+{
+    "student": {
+        "name": {
+            "lastName": "Sazid"
+        },
+        "guardian.fatherOccupation": "Kodu Becha"
+    }
+}
+```
+
+- we will not do this kind "guardian.fatherOccupation": "Kodu Becha" from front end we will do this using backend server
+
+```ts
+{
+    "student": {
+        "name": {
+            "lastName": "Sazid"
+        },
+        "guardian" : {
+            "fatherOccupation": "Kod becha"
+        }
+    }
+}
+```
+
+- if we do this the data will be muted. this is not also allowed
+
+## 13-12 Implement logic to handle dynamically update non-primitive fields
+
+```ts
+// update single student in db
+const updateStudentIntoDB = async (id: string, payload: Partial<TStudent>) => {
+  const { name, guardian, localGuardian, ...remainingStudentData } = payload;
+
+  const modifiedUpdatedData: Record<string, unknown> = {
+    ...remainingStudentData,
+  };
+  /*
+          "guardian" : {
+            "fatherOccupation": "Kod becha"
+        }
+
+        transform to 
+        "guardian.fatherOccupation": "Kodu Becha"
+        using backend
+   */
+
+  if (name && Object.keys(name).length) {
+    for (const [key, value] of Object.entries(name)) {
+      modifiedUpdatedData[`name.${key}`] = value;
+    }
+  }
+  if (guardian && Object.keys(guardian).length) {
+    for (const [key, value] of Object.entries(guardian)) {
+      modifiedUpdatedData[`guardian.${key}`] = value;
+    }
+  }
+  if (localGuardian && Object.keys(localGuardian).length) {
+    for (const [key, value] of Object.entries(localGuardian)) {
+      modifiedUpdatedData[`localGuardian.${key}`] = value;
+    }
+  }
+
+  console.log(modifiedUpdatedData);
+
+  const result = await Student.findOneAndUpdate({ id }, modifiedUpdatedData, {
+    new: true,
+    runValidators: true,
+  });
+  return result;
+};
+```
