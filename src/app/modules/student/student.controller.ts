@@ -46,8 +46,26 @@ const deleteSingleStudent = catchAsync(async (req, res) => {
   });
 });
 
+const updateStudent = catchAsync(async (req, res) => {
+  const { studentId } = req.params;
+  const { student } = req.body;
+  const studentExists = await Student.isUserExist(studentId);
+  // console.log(studentExists)
+  if (studentExists === null) {
+    throw new AppError(status.NOT_FOUND, 'Student not found');
+  }
+  const result = await StudentServices.updateStudentIntoDB(studentId, student);
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Student is Updated Successfully',
+    data: result,
+  });
+});
+
 export const StudentControllers = {
   getAllStudents,
   getSingleStudent,
   deleteSingleStudent,
+  updateStudent,
 };
