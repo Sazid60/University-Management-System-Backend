@@ -78,3 +78,42 @@ This is The Error Handling We Are doing but as a developer we have to do error h
   ![alt text](<WhatsApp Image 2025-03-26 at 11.10.22_88c6c917.jpg>)
 - We will not send the stack in production
   ![alt text](<WhatsApp Image 2025-03-26 at 11.10.54_de3e5025.jpg>)
+
+## 14-2 Understanding Error Patterns in Zod and Mongoose
+
+- we have to take care of all layer error handling even if we have handled in different layer
+- we need consistence pattern of error
+
+<!--
+success:
+message:
+errorSources:[
+path:'',
+message:''
+]
+stack:''
+ -->
+
+- we can use ErrorRequestHandler
+
+```ts
+const globalErrorHandler = (
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {};
+```
+
+- updated
+
+```ts
+const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {};
+```
+
+![alt text](image.png)
+
+- Zod provides a subclass of Error called ZodError. ZodErrors contain an issues array containing detailed information about the validation problems.
+
+- ZodError is a subclass of Error; you can create your own instance easily:
+- To checking class, subclass or instance we have to use instanceof operator

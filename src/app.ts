@@ -20,11 +20,9 @@ const test = (req: Request, res: Response) => {
 
 app.get('/', test);
 
-// @ts-expect-error
 app.use(globalErrorHandler);
 
 // not found route
 // @ts-expect-error
 app.use(notFound);
-
 export default app;
