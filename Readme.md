@@ -191,3 +191,8 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
 
 export default globalErrorHandler;
 ```
+
+## 14-4 How To Convert Mongoose Validation Error
+
+- Mongoose is The First validation layer and on top of mongoose Zod Validation is standing
+- a Fewer error will go to mongoose because zod error will handle but still we have to handle
