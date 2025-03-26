@@ -191,3 +191,5 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
 
 export default globalErrorHandler;
 ```
+
+## 14-4 How To Convert Mongoose Validation Error
