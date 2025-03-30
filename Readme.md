@@ -113,6 +113,26 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {};
 
 ## 14-3 How to Convert Zod Error
 
+- Zod Error Pattern
+
+```ts
+ "err": {
+        "issues": [
+            {
+                "code": "invalid_type",
+                "expected": "string",
+                "received": "undefined",
+                "path": [
+                    "body",
+                    "name"
+                ],
+                "message": "Name Is Required"
+            }
+        ],
+        "name": "ZodError"
+    },
+```
+
 - First We Will Detect The Error and then using the handler we will modify the error according to us
 
 [ZOD ERROR HANDLING](https://zod.dev/ERROR_HANDLINGhttps://zod.dev/ERROR_HANDLING)
@@ -196,3 +216,30 @@ export default globalErrorHandler;
 
 - Mongoose is The First validation layer and on top of mongoose Zod Validation is standing
 - a Fewer error will go to mongoose because zod error will handle but still we have to handle
+
+- Mongoose Error Pattern
+
+```ts
+   "err": {
+        "errors": {
+            "name": {
+                "name": "ValidatorError",
+                "message": "Path `name` is required.",
+                "properties": {
+                    "message": "Path `name` is required.",
+                    "type": "required",
+                    "path": "name"
+                },
+                "kind": "required",
+                "path": "name"
+            }
+        },
+        "_message": "AcademicDepartment validation failed",
+        "name": "ValidationError",
+        "message": "AcademicDepartment validation failed: name: Path `name` is required."
+    },
+```
+
+- We Have to Manipulate this
+
+- "name": "ValidationError", This will be used to detect the Mongoose Error. and we can access this by using err.name
