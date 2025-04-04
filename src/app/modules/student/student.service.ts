@@ -19,7 +19,7 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   }
 
   // Filtering
-  const excludeFields = ['searchTerm'];
+  const excludeFields = ['searchTerm', 'sort'];
   // since searchTerm value is replaced and trying to do exact match in searchTerm. so we are excluding
   excludeFields.forEach((el) => delete queryObj[el]);
   console.log(query, queryObj);
@@ -28,7 +28,7 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
       [field]: { $regex: searchTerm, $options: 'i' },
     })),
   }); // we are not keeping await here since we will do chaining
-  const result = await searchQuery
+  const filterQuery = searchQuery
     .find(queryObj)
     .populate('admissionSemester')
     .populate({
@@ -37,7 +37,16 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
         path: 'academicFaculty',
       },
     });
-  return result;
+
+  let sort = '-createdAt';
+
+  if (query.sort) {
+    sort = query.sort as string;
+  }
+
+  const sortQuery = await filterQuery.sort(sort);
+
+  return sortQuery;
 };
 const getSingleStudentFromDB = async (id: string) => {
   // const result = await Student.findOne({ id });

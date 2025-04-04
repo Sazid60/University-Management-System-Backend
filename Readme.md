@@ -920,3 +920,6 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   return result;
 };
 ```
+
+- Sorting
+  http://localhost:5000/api/v1/students?sort=email
