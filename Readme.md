@@ -920,3 +920,60 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   return result;
 };
 ```
+
+- Sorting & Limiting
+  http://localhost:5000/api/v1/students?sort=email
+  http://localhost:5000/api/v1/students?limit=1
+
+```ts
+const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
+  console.log('base Query', query);
+  const queryObj = { ...query }; // we want to delete so we are making a copy so that i do not permanently deleted as we might need it in future
+  // {email : {$regex: query.searchTerm,$options:i}}
+  // {presentAddress : {$regex: query.searchTerm,$options:i}}
+  // {'name.firstName' : {$regex: query.searchTerm,$options:i}}
+  // These Fields will be dynamic should not be hardcoded since it could be any field. so we have to do mapping
+  const studentSearchableFields = ['email', 'name.firstName', 'presentAddress'];
+  let searchTerm = '';
+  if (query?.searchTerm) {
+    searchTerm = query?.searchTerm as string;
+  }
+
+  // Filtering
+  const excludeFields = ['searchTerm', 'sort', 'limit'];
+  // since searchTerm value is replaced and trying to do exact match in searchTerm. so we are excluding
+  excludeFields.forEach((el) => delete queryObj[el]);
+  console.log(query, queryObj);
+  const searchQuery = Student.find({
+    $or: studentSearchableFields.map((field) => ({
+      [field]: { $regex: searchTerm, $options: 'i' },
+    })),
+  }); // we are not keeping await here since we will do chaining
+  const filterQuery = searchQuery
+    .find(queryObj)
+    .populate('admissionSemester')
+    .populate({
+      path: 'academicDepartment',
+      populate: {
+        path: 'academicFaculty',
+      },
+    });
+
+  let sort = '-createdAt';
+
+  if (query.sort) {
+    sort = query.sort as string;
+  }
+
+  const sortQuery = filterQuery.sort(sort);
+
+  let limit = 1;
+
+  if (query.limit) {
+    limit = query.limit as number;
+  }
+
+  const limitQuery = sortQuery.sort(limit);
+  return limitQuery;
+};
+```
