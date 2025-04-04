@@ -358,3 +358,19 @@ const handleValidationError = (
 
 export default handleValidationError;
 ```
+
+- Cast Error means {{ph-local-url}}/academic-departments/67de60ac07446b2c38bf6bc3 in here when id is invalid it shows a cast error.
+- Cast Error Pattern
+
+```ts
+"err": {
+        "stringValue": "\"67de60ac07446b2c38bf6bcewe\"",
+        "valueType": "string",
+        "kind": "ObjectId",
+        "value": "67de60ac07446b2c38bf6bcewe",
+        "path": "_id",
+        "reason": {},
+        "name": "CastError",
+        "message": "Cast to ObjectId failed for value \"67de60ac07446b2c38bf6bcewe\" (type string) at path \"_id\" for model \"AcademicDepartment\""
+    },
+```
