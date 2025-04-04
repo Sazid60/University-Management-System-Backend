@@ -6,20 +6,30 @@ import { User } from '../user/user.model';
 import { TStudent } from './student.interface';
 
 const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
+  console.log('base Query', query);
+  const queryObj = { ...query }; // we want to delete so we are making a copy so that i do not permanently deleted as we might need it in future
   // {email : {$regex: query.searchTerm,$options:i}}
   // {presentAddress : {$regex: query.searchTerm,$options:i}}
   // {'name.firstName' : {$regex: query.searchTerm,$options:i}}
   // These Fields will be dynamic should not be hardcoded since it could be any field. so we have to do mapping
-
+  const studentSearchableFields = ['email', 'name.firstName', 'presentAddress'];
   let searchTerm = '';
   if (query?.searchTerm) {
     searchTerm = query?.searchTerm as string;
   }
-  const result = await Student.find({
-    $or: ['email', 'name.firstName', 'presentAddress'].map((field) => ({
+
+  // Filtering
+  const excludeFields = ['searchTerm'];
+  // since searchTerm value is replaced and trying to do exact match in searchTerm. so we are excluding
+  excludeFields.forEach((el) => delete queryObj[el]);
+  console.log(query, queryObj);
+  const searchQuery = Student.find({
+    $or: studentSearchableFields.map((field) => ({
       [field]: { $regex: searchTerm, $options: 'i' },
     })),
-  })
+  }); // we are not keeping await here since we will do chaining
+  const result = await searchQuery
+    .find(queryObj)
     .populate('admissionSemester')
     .populate({
       path: 'academicDepartment',
