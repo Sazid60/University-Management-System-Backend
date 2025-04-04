@@ -52,7 +52,7 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
     limit = query.limit as number;
   }
 
-  const limitQuery = sortQuery.sort(limit);
+  const limitQuery = sortQuery.limit(limit);
   return limitQuery;
 };
 const getSingleStudentFromDB = async (id: string) => {
