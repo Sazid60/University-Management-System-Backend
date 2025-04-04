@@ -104,7 +104,7 @@ const deleteSingleStudentFromDB = async (id: string) => {
       { isDeleted: true },
       { new: true, session },
     );
-    if (!deletedStudent) {
+    if (!deletedUser) {
       throw new AppError(status.BAD_REQUEST, 'Failed To Delete User');
     }
 

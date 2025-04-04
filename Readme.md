@@ -358,3 +358,225 @@ const handleValidationError = (
 
 export default handleValidationError;
 ```
+
+- Cast Error means {{ph-local-url}}/academic-departments/67de60ac07446b2c38bf6bc3 in here when id is invalid it shows a cast error.
+- Cast Error Pattern
+
+```ts
+"err": {
+        "stringValue": "\"67de60ac07446b2c38bf6bcewe\"",
+        "valueType": "string",
+        "kind": "ObjectId",
+        "value": "67de60ac07446b2c38bf6bcewe",
+        "path": "_id",
+        "reason": {},
+        "name": "CastError",
+        "message": "Cast to ObjectId failed for value \"67de60ac07446b2c38bf6bcewe\" (type string) at path \"_id\" for model \"AcademicDepartment\""
+    },
+```
+
+- Handling Cast Error
+
+```ts
+import mongoose from 'mongoose';
+import { TErrorSources, TGenericErrorResponse } from '../interface/error';
+
+const handleCastError = (
+  err: mongoose.Error.CastError,
+): TGenericErrorResponse => {
+  const errorSource: TErrorSources = [
+    {
+      path: err.path,
+      message: err.message,
+    },
+  ];
+  const statusCode = 400;
+  return {
+    statusCode,
+    message: 'Invalid Id',
+    errorSource,
+  };
+};
+
+export default handleCastError;
+```
+
+- Global Error Handler Changes
+
+```ts
+/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { ErrorRequestHandler } from 'express';
+import { ZodError, ZodIssue } from 'zod';
+import { TErrorSources } from '../interface/error';
+import config from '../config';
+import handleZodError from '../errors/handleZodError';
+import handleValidationError from '../errors/handleValidationError';
+import handleCastError from '../errors/handleCastError';
+
+const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  let statusCode = err.statusCode || 500;
+  let message = err.message || 'Something Went Wrong';
+
+  let errorSource: TErrorSources = [
+    {
+      path: '',
+      message: 'Something Went Wrong',
+    },
+  ];
+
+  // To checking class, subclass or instance we have to use instanceof operator
+  //  we are detecting here that this is a zod error
+  if (err instanceof ZodError) {
+    // now we will send the error to the handler
+    const simplifiedError = handleZodError(err);
+    // console.log(simplifiedError);
+    //  now we will be doing over write
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  } else if (err?.name === 'ValidationError') {
+    // console.log('Ami Mongoose Validation Error');
+    const simplifiedError = handleValidationError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  } else if (err?.name === 'CastError') {
+    const simplifiedError = handleCastError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  }
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+    errorSource,
+    // err,
+    stack: config.NODE_ENV === 'development' ? err?.stack : null,
+  });
+};
+
+export default globalErrorHandler;
+```
+
+- We have to handled the duplicate id error, though we have used pre hook to handle the duplicate id, we have to handle the 11000 error for this
+- If we have not handled using pre hook it would be handled by using unique:true, technically unique:true is not a validator, unique just does indexing and sends error
+
+- Duplicate Error Format
+
+```ts
+"err": {
+        "errorLabelSet": {},
+        "errorResponse": {
+            "index": 0,
+            "code": 11000,
+            "errmsg": "E11000 duplicate key error collection: first-project.academicdepartments index: name_1 dup key: { name: \"Department Of Computer Science and Engineering\" }",
+            "keyPattern": {
+                "name": 1
+            },
+            "keyValue": {
+                "name": "Department Of Computer Science and Engineering"
+            }
+        },
+        "index": 0,
+        "code": 11000,
+        "keyPattern": {
+            "name": 1
+        },
+        "keyValue": {
+            "name": "Department Of Computer Science and Engineering"
+        }
+    },
+```
+
+- we can handle Duplicate Error
+
+```ts
+import { TErrorSources, TGenericErrorResponse } from '../interface/error';
+
+const handleDuplicateError = (err: any): TGenericErrorResponse => {
+  const match = err.message.match(/"([^"]*)"/);
+  const extractedMessage = match && match[1];
+  const errorSource: TErrorSources = [
+    {
+      path: '',
+      message: extractedMessage,
+    },
+  ];
+  const statusCode = 400;
+  return {
+    statusCode,
+    message: `${extractedMessage} Already Exist`,
+    errorSource,
+  };
+};
+
+export default handleDuplicateError;
+```
+
+- Final Global Error Handler
+
+```ts
+/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { ErrorRequestHandler } from 'express';
+import { ZodError, ZodIssue } from 'zod';
+import { TErrorSources } from '../interface/error';
+import config from '../config';
+import handleZodError from '../errors/handleZodError';
+import handleValidationError from '../errors/handleValidationError';
+import handleCastError from '../errors/handleCastError';
+import handleDuplicateError from '../errors/handleDuplicateError';
+
+const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  let statusCode = err.statusCode || 500;
+  let message = err.message || 'Something Went Wrong';
+
+  let errorSource: TErrorSources = [
+    {
+      path: '',
+      message: 'Something Went Wrong',
+    },
+  ];
+
+  // To checking class, subclass or instance we have to use instanceof operator
+  //  we are detecting here that this is a zod error
+  if (err instanceof ZodError) {
+    // now we will send the error to the handler
+    const simplifiedError = handleZodError(err);
+    // console.log(simplifiedError);
+    //  now we will be doing over write
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  } else if (err?.name === 'ValidationError') {
+    // console.log('Ami Mongoose Validation Error');
+    const simplifiedError = handleValidationError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  } else if (err?.name === 'CastError') {
+    const simplifiedError = handleCastError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  } else if (err?.code === 11000) {
+    const simplifiedError = handleDuplicateError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+    // console.log('Ami Duplicate');
+  }
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+    errorSource,
+    // err,
+    stack: config.NODE_ENV === 'development' ? err?.stack : null,
+  });
+};
+
+export default globalErrorHandler;
+```
