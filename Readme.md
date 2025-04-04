@@ -585,3 +585,228 @@ export default globalErrorHandler;
 
 - we have used throw new error and throw AppError in several places in this project, we want to make it more optimized since we are sending error response in our own format
 - As throw new Error or throw new AppError is class so we will use instance of operator to check the error
+- Global Error handler updated
+
+```ts
+/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { ErrorRequestHandler } from 'express';
+import { ZodError, ZodIssue } from 'zod';
+import { TErrorSources } from '../interface/error';
+import config from '../config';
+import handleZodError from '../errors/handleZodError';
+import handleValidationError from '../errors/handleValidationError';
+import handleCastError from '../errors/handleCastError';
+import handleDuplicateError from '../errors/handleDuplicateError';
+import AppError from '../errors/AppError';
+
+const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  let statusCode = 500;
+  let message = 'Something Went Wrong';
+
+  let errorSource: TErrorSources = [
+    {
+      path: '',
+      message: 'Something Went Wrong',
+    },
+  ];
+
+  // To checking class, subclass or instance we have to use instanceof operator
+  //  we are detecting here that this is a zod error
+  if (err instanceof ZodError) {
+    // now we will send the error to the handler
+    const simplifiedError = handleZodError(err);
+    // console.log(simplifiedError);
+    //  now we will be doing over write
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  } else if (err?.name === 'ValidationError') {
+    // console.log('Ami Mongoose Validation Error');
+    const simplifiedError = handleValidationError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  } else if (err?.name === 'CastError') {
+    const simplifiedError = handleCastError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  } else if (err?.code === 11000) {
+    const simplifiedError = handleDuplicateError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+    // console.log('Ami Duplicate');
+  } else if (err instanceof AppError) {
+    statusCode = err?.statusCode;
+    message = err?.message;
+    errorSource = [
+      {
+        path: '',
+        message: err?.message,
+      },
+    ];
+  } else if (err instanceof Error) {
+    //  status code will be coming from the default value
+    message = err?.message;
+    errorSource = [
+      {
+        path: '',
+        message: err?.message,
+      },
+    ];
+  }
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+    errorSource,
+    // err,
+    stack: config.NODE_ENV === 'development' ? err?.stack : null,
+  });
+};
+
+export default globalErrorHandler;
+```
+
+### Now comes the unhandled Rejection and uncaught rejection
+
+- Node js is a process
+- The process will automatically turns off and sometimes we have to off this throwing Error. we can not run server keeping error
+
+![alt text](<WhatsApp Image 2025-04-04 at 12.41.56_076a8fd8.jpg>)
+
+- To stop the process we have to use process.exit(1) here 1 means true
+- in synchronous code if we get unCaughtException we will stop the process immediately
+- In asynchronous code if unhandledRejection happens we will handle it more politely like we are closing all things and then shuts down.
+  ![alt text](<WhatsApp Image 2025-04-04 at 16.11.21_5bdbd425.jpg>)
+- will handle it politely since many process will be running and they should be closed then we should stop the process
+
+```ts
+server.close(() => {
+  process.exit(1);
+});
+```
+
+- we will not do these in globalErrorHandler since it just handles error of express application
+- Unhandled rejection or Uncaught exception will be coming from all over application process, for this reason we will assign the server in a variable so that we can detect
+- Since node.js is a event driven architecture, we will listen in the process for uncaughtException and unhandledRejection so that we detect and handle
+
+### UnhandledRejection implementation in case of asynchronous code
+
+- app.ts
+
+```ts
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import express, { Application, Request, Response } from 'express';
+import cors from 'cors';
+
+import globalErrorHandler from './app/middlewares/globalErrorHandler';
+import notFound from './app/middlewares/notFound';
+import router from './app/routes';
+const app: Application = express();
+
+// parser
+app.use(express.json());
+app.use(cors());
+
+// application Routes
+app.use('/api/v1/', router);
+
+// understanding unhandledRejection
+const test = async (req: Request, res: Response) => {
+  // res.send('Connected');
+  Promise.reject();
+};
+
+app.get('/', test);
+
+app.use(globalErrorHandler);
+
+// not found route
+// @ts-expect-error
+app.use(notFound);
+export default app;
+```
+
+- server.ts
+
+```ts
+import mongoose from 'mongoose';
+import config from './app/config';
+import app from './app';
+import { Server } from 'http';
+
+let server: Server;
+//  we have to bring the type from http since we use http to make raw node.js server
+async function main() {
+  try {
+    await mongoose.connect(config.database_url as string);
+    server = app.listen(config.port, () => {
+      console.log(`Example app listening on port ${config.port}`);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+main();
+
+// Since node.js is a event driven architecture, we will listen in the process for uncaughtException and unhandledRejection so that we detect(using process.on) and handle
+process.on('unhandledRejection', () => {
+  console.log(`UnhandledRejection Detected, shutting Down The Server`);
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
+  process.exit(1);
+});
+```
+
+- in anywhere we are using Promise.reject(); it will be detected
+
+### UncaughtException implementation in case of synchronous code
+
+```ts
+import mongoose from 'mongoose';
+import config from './app/config';
+import app from './app';
+import { Server } from 'http';
+
+let server: Server;
+//  we have to bring the type from http since we use http to make raw node.js server
+async function main() {
+  try {
+    await mongoose.connect(config.database_url as string);
+    server = app.listen(config.port, () => {
+      console.log(`Example app listening on port ${config.port}`);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+main();
+
+// Since node.js is a event driven architecture, we will listen in the process for uncaughtException and unhandledRejection so that we detect(using process.on) and handle
+process.on('unhandledRejection', () => {
+  console.log(`UnhandledRejection Detected, shutting Down The Server`);
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
+  process.exit(1);
+});
+
+// uncaughtException
+
+process.on('uncaughtException', () => {
+  console.log(`uncaughtException Detected, shutting Down The Server`);
+  process.exit(1);
+});
+
+console.log(x);
+```
