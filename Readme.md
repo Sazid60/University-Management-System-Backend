@@ -243,3 +243,118 @@ export default globalErrorHandler;
 - We Have to Manipulate this
 
 - "name": "ValidationError", This will be used to detect the Mongoose Error. and we can access this by using err.name
+
+- Mongoose Error Handler
+
+```ts
+import mongoose from 'mongoose';
+import { TErrorSources } from '../interface/error';
+
+const handleValidationError = (err: mongoose.Error.ValidationError) => {
+  const errorSource: TErrorSources = Object.values(err.errors).map(
+    (val: mongoose.Error.ValidatorError | mongoose.Error.CastError) => {
+      return {
+        path: val?.path,
+        message: val?.message,
+      };
+    },
+  );
+
+  const statusCode = 400;
+  return {
+    statusCode,
+    message: 'Mongoose Validation Error',
+    errorSource,
+  };
+};
+
+export default handleValidationError;
+```
+
+- Final Global Error Handler
+
+```ts
+/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { ErrorRequestHandler } from 'express';
+import { ZodError, ZodIssue } from 'zod';
+import { TErrorSources } from '../interface/error';
+import config from '../config';
+import handleZodError from '../errors/handleZodError';
+import handleValidationError from '../errors/handleValidationError';
+
+const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  let statusCode = err.statusCode || 500;
+  let message = err.message || 'Something Went Wrong';
+
+  let errorSource: TErrorSources = [
+    {
+      path: '',
+      message: 'Something Went Wrong',
+    },
+  ];
+
+  // To checking class, subclass or instance we have to use instanceof operator
+  //  we are detecting here that this is a zod error
+  if (err instanceof ZodError) {
+    // now we will send the error to the handler
+    const simplifiedError = handleZodError(err);
+    // console.log(simplifiedError);
+    //  now we will be doing over write
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  } else if (err?.name === 'ValidationError') {
+    // console.log('Ami Mongoose Validation Error');
+    const simplifiedError = handleValidationError(err);
+    statusCode = simplifiedError?.statusCode;
+    message = simplifiedError?.message;
+    errorSource = simplifiedError?.errorSource;
+  }
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+    errorSource,
+    stack: config.NODE_ENV === 'development' ? err?.stack : null,
+  });
+};
+
+export default globalErrorHandler;
+```
+
+## 14-5 How To Handle Cast Error And 11000 Error
+
+- we should create a return type as well so that fixed type data is sent
+
+```ts
+import mongoose from 'mongoose';
+import { TErrorSources } from '../interface/error';
+type TGenericErrorResponse = {
+  statusCode: number;
+  message: string;
+  errorSource: TErrorSources;
+};
+
+const handleValidationError = (
+  err: mongoose.Error.ValidationError,
+): TGenericErrorResponse => {
+  const errorSource: TErrorSources = Object.values(err.errors).map(
+    (val: mongoose.Error.ValidatorError | mongoose.Error.CastError) => {
+      return {
+        path: val?.path,
+        message: val?.message,
+      };
+    },
+  );
+
+  const statusCode = 400;
+  return {
+    statusCode,
+    message: 'Mongoose Validation Error',
+    errorSource,
+  };
+};
+
+export default handleValidationError;
+```
