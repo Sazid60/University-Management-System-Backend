@@ -580,3 +580,8 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
 
 export default globalErrorHandler;
 ```
+
+## 14-6 How To Handle Error, AppError, unhandledRejection, uncaughtRejection
+
+- we have used throw new error and throw AppError in several places in this project, we want to make it more optimized since we are sending error response in our own format
+- As throw new Error or throw new AppError is class so we will use instance of operator to check the error
