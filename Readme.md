@@ -810,3 +810,70 @@ process.on('uncaughtException', () => {
 
 console.log(x);
 ```
+
+## 14-7 How to do raw Searching and filtering
+
+![alt text](<WhatsApp Image 2025-04-04 at 16.44.57_7d924409.jpg>)
+
+- we send three types of data inside request
+
+  1. Body - sending large data
+  2. Prams - Sending Dynamic id or dynamic Field
+  3. Query - the fields we need to query
+
+- Query is a object made by express
+  ![alt text](<WhatsApp Image 2025-04-04 at 19.30.20_1905c9d0.jpg>)
+- Inside searchTerm we do not tell specific field we do searching using the word and search in specific field and thi9s will be partial match
+- Inside Filtering we will do exact match
+  ![alt text](<WhatsApp Image 2025-04-04 at 19.35.08_5e687248.jpg>)
+- for search we will fix some fields
+  ![alt text](<WhatsApp Image 2025-04-04 at 19.36.27_b34fb9bd.jpg>)
+- For Filter we will give the value and the field at a time
+- Params
+  ![alt text](<WhatsApp Image 2025-04-04 at 19.38.07_89370c07.jpg>)
+- Method Chaining [each returns a query]
+  ![alt text](<WhatsApp Image 2025-04-04 at 19.39.28_9559295c.jpg>)
+
+- student.controller.ts
+
+```ts
+const getAllStudents = catchAsync(async (req, res) => {
+  console.log(req.query);
+  const result = await StudentServices.getAllStudentsFromDB(req.query);
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Student are retrieved Successfully',
+    data: result,
+  });
+});
+```
+
+- student.service.ts
+
+```ts
+const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
+  // {email : {$regex: query.searchTerm,$options:i}}
+  // {presentAddress : {$regex: query.searchTerm,$options:i}}
+  // {'name.firstName' : {$regex: query.searchTerm,$options:i}}
+  // These Fields will be dynamic should not be hardcoded since it could be any field. so we have to do mapping
+
+  let searchTerm = '';
+  if (query?.searchTerm) {
+    searchTerm = query?.searchTerm as string;
+  }
+  const result = await Student.find({
+    $or: ['email', 'name.firstName', 'presentAddress'].map((field) => ({
+      [field]: { $regex: searchTerm, $options: 'i' },
+    })),
+  })
+    .populate('admissionSemester')
+    .populate({
+      path: 'academicDepartment',
+      populate: {
+        path: 'academicFaculty',
+      },
+    });
+  return result;
+};
+```
