@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import status from 'http-status';
 import config from '../../config';
 import AppError from '../../errors/AppError';
@@ -75,11 +76,11 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
     await session.endSession();
 
     return newStudent;
-  } catch (err) {
+  } catch (err: any) {
     await session.abortTransaction();
     await session.endSession();
     // throw new AppError(status.BAD_REQUEST, 'Filed To Delete Student');
-    throw err;
+    throw new Error(err);
     // For transaction rollback we should use this to get the best error
   }
 };
