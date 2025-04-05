@@ -977,3 +977,15 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   return limitQuery;
 };
 ```
+
+## 14-9 How to do pagination and field limiting
+
+![alt text](<WhatsApp Image 2025-04-05 at 08.02.30_458ea81d.jpg>)
+
+- Limit is related to pagination
+- We Will take the page and limit value from frontend
+  ![alt text](image-1.png)
+  ![alt text](image-2.png)
+  ![alt text](image-3.png)
+  ![alt text](image-4.png)
+- Formula For Pagination is limit=10 , page=n, skip= (page-1) x limit

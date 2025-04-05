@@ -6,7 +6,7 @@ import { User } from '../user/user.model';
 import { TStudent } from './student.interface';
 
 const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
-  console.log('base Query', query);
+  // console.log('base Query', query);
   const queryObj = { ...query }; // we want to delete so we are making a copy so that i do not permanently deleted as we might need it in future
   // {email : {$regex: query.searchTerm,$options:i}}
   // {presentAddress : {$regex: query.searchTerm,$options:i}}
@@ -19,10 +19,10 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   }
 
   // Filtering
-  const excludeFields = ['searchTerm', 'sort', 'limit'];
+  const excludeFields = ['searchTerm', 'sort', 'limit', 'page'];
   // since searchTerm value is replaced and trying to do exact match in searchTerm. so we are excluding
   excludeFields.forEach((el) => delete queryObj[el]);
-  console.log(query, queryObj);
+  console.log({ query, queryObj });
   const searchQuery = Student.find({
     $or: studentSearchableFields.map((field) => ({
       [field]: { $regex: searchTerm, $options: 'i' },
@@ -45,14 +45,21 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   }
 
   const sortQuery = filterQuery.sort(sort);
-
+  let page = 1;
   let limit = 1;
+  let skip = 0;
 
   if (query.limit) {
-    limit = query.limit as number;
+    limit = Number(query.limit);
   }
 
-  const limitQuery = sortQuery.limit(limit);
+  if (query.page) {
+    page = Number(query.page);
+    skip = (page - 1) * limit;
+  }
+  const paginateQuery = sortQuery.skip(skip);
+
+  const limitQuery = paginateQuery.limit(limit);
   return limitQuery;
 };
 const getSingleStudentFromDB = async (id: string) => {
