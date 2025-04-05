@@ -1352,3 +1352,8 @@ class QueryBuilder<T> {
 
 export default QueryBuilder;
 ```
+
+## Practice Task
+
+![alt text](<WhatsApp Image 2025-04-05 at 11.24.25_81330daf.jpg>)
+![alt text](<WhatsApp Image 2025-04-05 at 11.25.35_5720fb04.jpg>)
