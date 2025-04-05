@@ -54,7 +54,8 @@ class QueryBuilder<T> {
   //   sort method
 
   sort() {
-    const sort = this?.query?.sort || '-createdAt';
+    const sort =
+      (this?.query?.sort as string)?.split(',')?.join(' ') || '-createdAt';
     this.modelQuery = this.modelQuery.sort(sort as string);
     return this;
   }
@@ -73,7 +74,7 @@ class QueryBuilder<T> {
   //   filed filtering method
   fields() {
     const fields =
-      (this?.query.fields as string)?.split(',').join(' ') || '-__v';
+      (this?.query.fields as string)?.split(',')?.join(' ') || '-__v';
 
     this.modelQuery = this.modelQuery.select(fields);
     return this;
