@@ -1057,4 +1057,196 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
 
 ![alt text](<WhatsApp Image 2025-04-05 at 08.23.06_63298013.jpg>)
 
-http://localhost:5000/api/v1/students/?fields=name, email
+http://localhost:5000/api/v1/students/?fields=name,email
+
+http://localhost:5000/api/v1/students/?fields=-name,email
+
+- Here -name mean it will skip the data
+- student.service.ts
+
+```ts
+const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
+  // console.log('base Query', query);
+  const queryObj = { ...query }; // we want to delete so we are making a copy so that i do not permanently deleted as we might need it in future
+  // {email : {$regex: query.searchTerm,$options:i}}
+  // {presentAddress : {$regex: query.searchTerm,$options:i}}
+  // {'name.firstName' : {$regex: query.searchTerm,$options:i}}
+  // These Fields will be dynamic should not be hardcoded since it could be any field. so we have to do mapping
+  const studentSearchableFields = ['email', 'name.firstName', 'presentAddress'];
+  let searchTerm = '';
+  if (query?.searchTerm) {
+    searchTerm = query?.searchTerm as string;
+  }
+
+  // Filtering
+  const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
+  // since searchTerm value is replaced and trying to do exact match in searchTerm. so we are excluding
+  excludeFields.forEach((el) => delete queryObj[el]);
+  console.log({ query, queryObj });
+  const searchQuery = Student.find({
+    $or: studentSearchableFields.map((field) => ({
+      [field]: { $regex: searchTerm, $options: 'i' },
+    })),
+  }); // we are not keeping await here since we will do chaining
+  const filterQuery = searchQuery
+    .find(queryObj)
+    .populate('admissionSemester')
+    .populate({
+      path: 'academicDepartment',
+      populate: {
+        path: 'academicFaculty',
+      },
+    });
+
+  let sort = '-createdAt';
+
+  if (query.sort) {
+    sort = query.sort as string;
+  }
+
+  const sortQuery = filterQuery.sort(sort);
+  let page = 1;
+  let limit = 1;
+  let skip = 0;
+
+  if (query.limit) {
+    limit = Number(query.limit);
+  }
+
+  if (query.page) {
+    page = Number(query.page);
+    skip = (page - 1) * limit;
+  }
+  const paginateQuery = sortQuery.skip(skip);
+
+  const limitQuery = paginateQuery.limit(limit);
+
+  // field Limiting
+
+  // query: { fields: 'name, email' } we have to make it 'name email '
+  let fields = '-__v';
+  if (query.fields) {
+    fields = (query.fields as string).split(',').join(' ');
+    console.log({ fields });
+  }
+  const filedQuery = await limitQuery.select(fields);
+  return filedQuery;
+};
+```
+
+## 14-10 Refactoring Code and Building a Query Builder (make reuseable)
+
+- Making everything using class based system
+- QueryBuilder.ts
+
+```ts
+import { FilterQuery, Query } from 'mongoose';
+
+class QueryBuilder<T> {
+  // mongoose Query Model
+  public modelQuery: Query<T[], T>; // it means it might give array or array of object
+
+  // express Query
+  public query: Record<string, unknown>;
+
+  constructor(modelQuery: Query<T[], T>, query: Record<string, unknown>) {
+    this.modelQuery = modelQuery;
+    this.query = query;
+  }
+
+  //  search method
+  search(searchableFields: string[]) {
+    const searchTerm = this?.query?.searchTerm;
+    if (searchTerm) {
+      // const searchQuery = Student.find({
+      //     $or: studentSearchableFields.map((field) => ({
+      //       [field]: { $regex: searchTerm, $options: 'i' },
+      //     })),
+      //   });
+
+      //   re assigning this.modelQuery
+      // modelQuery replace hoye hoye jabe
+      this.modelQuery = this.modelQuery.find({
+        $or: searchableFields.map(
+          (field) =>
+            ({
+              [field]: { $regex: searchTerm, $options: 'i' },
+            }) as FilterQuery<T>,
+        ),
+      });
+    }
+
+    // this helps to method chaining
+    return this;
+  }
+
+  //   filter method
+
+  filter() {
+    const queryObj = { ...this.query };
+
+    const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
+    excludeFields.forEach((el) => delete queryObj[el]);
+
+    this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>);
+
+    return this;
+  }
+
+  //   sort method
+
+  sort() {
+    const sort = this?.query?.sort || '-createdAt';
+    this.modelQuery = this.modelQuery.sort(sort as string);
+    return this;
+  }
+
+  //   pagination method
+
+  paginate() {
+    const page = Number(this?.query?.page) || 1;
+    const limit = Number(this?.query?.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    this.modelQuery = this.modelQuery.skip(skip).limit(limit);
+    return this;
+  }
+
+  //   filed filtering method
+  fields() {
+    const fields =
+      (this?.query.fields as string)?.split(',').join(' ') || '-__v';
+
+    this.modelQuery = this.modelQuery.select(fields);
+    return this;
+  }
+}
+
+export default QueryBuilder;
+```
+
+- student.constant.ts
+
+```ts
+export const studentSearchableFields = [
+  'email',
+  'name.firstName',
+  'presentAddress',
+];
+```
+
+- Student.service.ts
+
+```ts
+const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
+  const studentQuery = new QueryBuilder(Student.find(), query)
+    .search(studentSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const result = await studentQuery.modelQuery;
+  return result;
+};
+```
