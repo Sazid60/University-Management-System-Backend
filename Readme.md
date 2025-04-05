@@ -1057,4 +1057,83 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
 
 ![alt text](<WhatsApp Image 2025-04-05 at 08.23.06_63298013.jpg>)
 
-http://localhost:5000/api/v1/students/?fields=name, email
+http://localhost:5000/api/v1/students/?fields=name,email
+
+http://localhost:5000/api/v1/students/?fields=-name,email
+
+- Here -name mean it will skip the data
+- student.service.ts
+
+```ts
+const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
+  // console.log('base Query', query);
+  const queryObj = { ...query }; // we want to delete so we are making a copy so that i do not permanently deleted as we might need it in future
+  // {email : {$regex: query.searchTerm,$options:i}}
+  // {presentAddress : {$regex: query.searchTerm,$options:i}}
+  // {'name.firstName' : {$regex: query.searchTerm,$options:i}}
+  // These Fields will be dynamic should not be hardcoded since it could be any field. so we have to do mapping
+  const studentSearchableFields = ['email', 'name.firstName', 'presentAddress'];
+  let searchTerm = '';
+  if (query?.searchTerm) {
+    searchTerm = query?.searchTerm as string;
+  }
+
+  // Filtering
+  const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
+  // since searchTerm value is replaced and trying to do exact match in searchTerm. so we are excluding
+  excludeFields.forEach((el) => delete queryObj[el]);
+  console.log({ query, queryObj });
+  const searchQuery = Student.find({
+    $or: studentSearchableFields.map((field) => ({
+      [field]: { $regex: searchTerm, $options: 'i' },
+    })),
+  }); // we are not keeping await here since we will do chaining
+  const filterQuery = searchQuery
+    .find(queryObj)
+    .populate('admissionSemester')
+    .populate({
+      path: 'academicDepartment',
+      populate: {
+        path: 'academicFaculty',
+      },
+    });
+
+  let sort = '-createdAt';
+
+  if (query.sort) {
+    sort = query.sort as string;
+  }
+
+  const sortQuery = filterQuery.sort(sort);
+  let page = 1;
+  let limit = 1;
+  let skip = 0;
+
+  if (query.limit) {
+    limit = Number(query.limit);
+  }
+
+  if (query.page) {
+    page = Number(query.page);
+    skip = (page - 1) * limit;
+  }
+  const paginateQuery = sortQuery.skip(skip);
+
+  const limitQuery = paginateQuery.limit(limit);
+
+  // field Limiting
+
+  // query: { fields: 'name, email' } we have to make it 'name email '
+  let fields = '-__v';
+  if (query.fields) {
+    fields = (query.fields as string).split(',').join(' ');
+    console.log({ fields });
+  }
+  const filedQuery = await limitQuery.select(fields);
+  return filedQuery;
+};
+```
+
+## 14-10 Refactoring Code and Building a Query Builder (make reuseable)
+
+- Making everything using class based system
