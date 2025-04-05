@@ -19,7 +19,7 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   }
 
   // Filtering
-  const excludeFields = ['searchTerm', 'sort', 'limit', 'page'];
+  const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
   // since searchTerm value is replaced and trying to do exact match in searchTerm. so we are excluding
   excludeFields.forEach((el) => delete queryObj[el]);
   console.log({ query, queryObj });
@@ -60,7 +60,17 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   const paginateQuery = sortQuery.skip(skip);
 
   const limitQuery = paginateQuery.limit(limit);
-  return limitQuery;
+
+  // field Limiting
+
+  // query: { fields: 'name, email' } we have to make it 'name email '
+  let fields = '-__v';
+  if (query.fields) {
+    fields = (query.fields as string).split(',').join(' ');
+    console.log({ fields });
+  }
+  const filedQuery = await limitQuery.select(fields);
+  return filedQuery;
 };
 const getSingleStudentFromDB = async (id: string) => {
   // const result = await Student.findOne({ id });
