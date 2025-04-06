@@ -8,7 +8,7 @@ import { TStudent } from '../student/student.interface';
 import { Student } from '../student/student.model';
 import { TUser } from './user.interface';
 import { User } from './user.model';
-import { generateStudentId } from './user.utils';
+import { generateFacultyId, generateStudentId } from './user.utils';
 import mongoose from 'mongoose';
 import { TFaculty } from '../faculty/faculty.interface';
 import { AcademicDepartment } from '../academicDepartment/academicDepartment.model';
@@ -106,7 +106,7 @@ const createFacultyIntoDB = async (password: string, payload: TFaculty) => {
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    userData.id = 'F-0001';
+    userData.id = await generateFacultyId();
     const newUser = await User.create([userData], { session });
     if (!newUser.length) {
       throw new AppError(status.BAD_REQUEST, 'Failed To Create User');
