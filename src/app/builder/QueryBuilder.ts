@@ -76,6 +76,7 @@ class QueryBuilder<T> {
     const fields =
       (this?.query.fields as string)?.split(',')?.join(' ') || '-__v';
 
+    console.log('Selecting fields:', fields);
     this.modelQuery = this.modelQuery.select(fields);
     return this;
   }

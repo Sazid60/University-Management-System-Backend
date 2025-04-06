@@ -4,9 +4,20 @@ import AppError from '../../errors/AppError';
 import status from 'http-status';
 import { User } from '../user/user.model';
 import { TFaculty } from './faculty.interface';
+import { FacultySearchableFields } from './faculty.constants';
+import QueryBuilder from '../../builder/QueryBuilder';
 
-const getAllFacultiesFromDB = async () => {
-  const result = await Faculty.find().populate('academicDepartment');
+const getAllFacultiesFromDB = async (query: Record<string, unknown>) => {
+  const facultyQuery = new QueryBuilder(
+    Faculty.find().populate('academicDepartment'),
+    query,
+  )
+    .search(FacultySearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+  const result = await facultyQuery.modelQuery;
   return result;
 };
 
