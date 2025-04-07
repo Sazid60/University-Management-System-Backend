@@ -2,6 +2,8 @@ import status from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { FacultyServices } from './faculty.service';
+import { Faculty } from './faculty.model';
+import AppError from '../../errors/AppError';
 
 const getAllFaculties = catchAsync(async (req, res) => {
   const result = await FacultyServices.getAllFacultiesFromDB(req.query);
@@ -25,6 +27,11 @@ const getSingleFaculty = catchAsync(async (req, res) => {
 });
 const deleteFaculty = catchAsync(async (req, res) => {
   const { id } = req.params;
+  const facultyExists = await Faculty.isUserExist(id);
+  // console.log(studentExists)
+  if (facultyExists === null) {
+    throw new AppError(status.NOT_FOUND, 'Faculty not found');
+  }
   const result = await FacultyServices.deleteFacultyFromDB(id);
   sendResponse(res, {
     statusCode: status.OK,
@@ -36,6 +43,13 @@ const deleteFaculty = catchAsync(async (req, res) => {
 const updateFaculty = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { faculty } = req.body;
+
+  const facultyExists = await Faculty.isUserExist(id);
+  // console.log(studentExists)
+  if (facultyExists === null) {
+    throw new AppError(status.NOT_FOUND, 'Faculty not found');
+  }
+
   const result = await FacultyServices.updateFacultyIntoDB(id, faculty);
 
   sendResponse(res, {

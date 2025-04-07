@@ -2,6 +2,8 @@ import status from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AdminServices } from './admin.service';
+import { Admin } from './admin.model';
+import AppError from '../../errors/AppError';
 
 const getSingleAdmin = catchAsync(async (req, res) => {
   const { id } = req.params;
@@ -29,6 +31,13 @@ const getAllAdmins = catchAsync(async (req, res) => {
 const updateAdmin = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { admin } = req.body;
+
+  const adminExists = await Admin.isUserExists(id);
+  // console.log(studentExists)
+  if (adminExists === null) {
+    throw new AppError(status.NOT_FOUND, 'Admin not found');
+  }
+
   const result = await AdminServices.updateAdminIntoDB(id, admin);
 
   sendResponse(res, {
@@ -41,6 +50,13 @@ const updateAdmin = catchAsync(async (req, res) => {
 
 const deleteAdmin = catchAsync(async (req, res) => {
   const { id } = req.params;
+
+  const adminExists = await Admin.isUserExists(id);
+  // console.log(studentExists)
+  if (adminExists === null) {
+    throw new AppError(status.NOT_FOUND, 'Admin not found');
+  }
+
   const result = await AdminServices.deleteAdminFromDB(id);
 
   sendResponse(res, {
