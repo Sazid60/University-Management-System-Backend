@@ -2,6 +2,8 @@ import status from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { FacultyServices } from './faculty.service';
+import { Faculty } from './faculty.model';
+import AppError from '../../errors/AppError';
 
 const getAllFaculties = catchAsync(async (req, res) => {
   const result = await FacultyServices.getAllFacultiesFromDB(req.query);
@@ -14,8 +16,8 @@ const getAllFaculties = catchAsync(async (req, res) => {
 });
 
 const getSingleFaculty = catchAsync(async (req, res) => {
-  const { facultyId } = req.params;
-  const result = await FacultyServices.getSingleFacultyFromDB(facultyId);
+  const { id } = req.params;
+  const result = await FacultyServices.getSingleFacultyFromDB(id);
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
@@ -24,8 +26,13 @@ const getSingleFaculty = catchAsync(async (req, res) => {
   });
 });
 const deleteFaculty = catchAsync(async (req, res) => {
-  const { facultyId } = req.params;
-  const result = await FacultyServices.deleteFacultyFromDB(facultyId);
+  const { id } = req.params;
+  const facultyExists = await Faculty.isUserExist(id);
+  // console.log(studentExists)
+  if (facultyExists === null) {
+    throw new AppError(status.NOT_FOUND, 'Faculty not found');
+  }
+  const result = await FacultyServices.deleteFacultyFromDB(id);
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
@@ -34,9 +41,16 @@ const deleteFaculty = catchAsync(async (req, res) => {
   });
 });
 const updateFaculty = catchAsync(async (req, res) => {
-  const { facultyId } = req.params;
+  const { id } = req.params;
   const { faculty } = req.body;
-  const result = await FacultyServices.updateFacultyIntoDB(facultyId, faculty);
+
+  const facultyExists = await Faculty.isUserExist(id);
+  // console.log(studentExists)
+  if (facultyExists === null) {
+    throw new AppError(status.NOT_FOUND, 'Faculty not found');
+  }
+
+  const result = await FacultyServices.updateFacultyIntoDB(id, faculty);
 
   sendResponse(res, {
     statusCode: status.OK,

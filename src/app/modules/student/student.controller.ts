@@ -10,8 +10,8 @@ import { Student } from './student.model';
 
 //  we do not need to use Request Handler here since it will be handled inside the catchAsync
 const getSingleStudent = catchAsync(async (req, res) => {
-  const { studentId } = req.params;
-  const result = await StudentServices.getSingleStudentFromDB(studentId);
+  const { id } = req.params;
+  const result = await StudentServices.getSingleStudentFromDB(id);
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
@@ -32,13 +32,13 @@ const getAllStudents = catchAsync(async (req, res) => {
 });
 
 const deleteSingleStudent = catchAsync(async (req, res) => {
-  const { studentId } = req.params;
-  const studentExists = await Student.isUserExist(studentId);
+  const { id } = req.params;
+  const studentExists = await Student.isUserExist(id);
   // console.log(studentExists)
   if (studentExists === null) {
     throw new AppError(status.NOT_FOUND, 'Student not found');
   }
-  const result = await StudentServices.deleteSingleStudentFromDB(studentId);
+  const result = await StudentServices.deleteSingleStudentFromDB(id);
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
@@ -48,14 +48,14 @@ const deleteSingleStudent = catchAsync(async (req, res) => {
 });
 
 const updateStudent = catchAsync(async (req, res) => {
-  const { studentId } = req.params;
+  const { id } = req.params;
   const { student } = req.body;
-  const studentExists = await Student.isUserExist(studentId);
+  const studentExists = await Student.isUserExist(id);
   // console.log(studentExists)
   if (studentExists === null) {
     throw new AppError(status.NOT_FOUND, 'Student not found');
   }
-  const result = await StudentServices.updateStudentIntoDB(studentId, student);
+  const result = await StudentServices.updateStudentIntoDB(id, student);
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
