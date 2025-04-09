@@ -36,7 +36,7 @@ const updateCourseValidationSchema = z.object({
 // const updateCourseValidationSchema = createCourseValidationSchema.partial()
 // using partial we can change type level but we can not change validation rule
 
-const facultiesWithCourseValidationSchema = z.object({
+export const facultiesWithCourseValidationSchema = z.object({
   body: z.object({
     faculties: z.array(z.string()),
   }),

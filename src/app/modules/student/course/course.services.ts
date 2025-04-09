@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import QueryBuilder from '../../../builder/QueryBuilder';
 import { courseSearchableFields } from './course.constants';
-import { TCourses } from './course.interface';
-import { Course } from './course.model';
+import { TCourseFaculty, TCourses } from './course.interface';
+import { Course, CourseFaculty } from './course.model';
 import AppError from '../../../errors/AppError';
 import status from 'http-status';
 
@@ -126,10 +126,24 @@ const updateCourseIntoDB = async (id: string, payload: Partial<TCourses>) => {
   }
 };
 
+const assignFacultiesWithCourseIntoDB = async (
+  id: string,
+  payload: Partial<TCourseFaculty>,
+) => {
+  const result = await CourseFaculty.findByIdAndUpdate(
+    id,
+    { course: id, $addToSet: { faculties: { $each: payload } } },
+    { upsert: true, new: true },
+  );
+  //  here upsert:true is used since wer are going to create one time and then we are going to add new faculties if new faculties are hired. we are not going to create entirely. this is why we are using put method. It means thakle add hobe naile notun kore create hobe
+
+  return result;
+};
 export const CourseServices = {
   createCourseIntoDB,
   getAllCoursesFromDB,
   getSingleCourseFromDB,
   deleteCourseFromDB,
   updateCourseIntoDB,
+  assignFacultiesWithCourseIntoDB,
 };

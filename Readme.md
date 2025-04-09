@@ -340,3 +340,9 @@ const updateCourseIntoDB = async (id: string, payload: Partial<TCourses>) => {
 - We Have to Find out which faculty takes which courses
 - The problem is one named course can be taken by different different faculties
   ![alt text](<WhatsApp Image 2025-04-09 at 19.32.50_c9895ee5.jpg>)
+- we can do this by keeping the courses id and array of faculties so that we know same named course is taken by which faculties so that this helps us to do filtering
+
+![alt text](image-8.png)
+
+- course id will be taken from params
+- Faculty id will be taken from req.body

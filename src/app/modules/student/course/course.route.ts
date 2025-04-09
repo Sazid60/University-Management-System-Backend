@@ -1,6 +1,9 @@
 import validateRequest from '../../../middlewares/validateRequest';
 import { CourseControllers } from './course.controller';
-import { CourseValidations } from './course.validation';
+import {
+  CourseValidations,
+  facultiesWithCourseValidationSchema,
+} from './course.validation';
 import express from 'express';
 
 const router = express.Router();
@@ -22,5 +25,11 @@ router.patch(
 router.delete('/:id', CourseControllers.deleteCourse);
 
 router.get('/', CourseControllers.getAllCourses);
+
+router.put(
+  '/:courseId/assign-faculties',
+  validateRequest(facultiesWithCourseValidationSchema),
+  CourseControllers.assignFacultiesWithCourse,
+);
 
 export const CourseRoutes = router;
