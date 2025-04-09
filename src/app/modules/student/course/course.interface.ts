@@ -10,4 +10,5 @@ export type TCourses = {
   code: number;
   credits: number;
   preRequisiteCourses: [];
+  isDeleted?: boolean;
 };

@@ -33,6 +33,8 @@ const updateCourseValidationSchema = z.object({
     isDeleted: z.boolean().optional(),
   }),
 });
+// const updateCourseValidationSchema = createCourseValidationSchema.partial()
+// using partial we can change type level but we can not change validation rule
 
 const facultiesWithCourseValidationSchema = z.object({
   body: z.object({

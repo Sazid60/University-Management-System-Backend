@@ -76,6 +76,15 @@ const preRequisiteCourses = new Schema<TPreRequisiteCourses>({
     default: false,
   },
 });
+// Why Use a Sub-Schema?
+// By creating a separate schema for preRequisiteCourses, you gain more flexibility:
+
+// You can add fields like isDeleted, notes, addedBy, etc.
+
+// You can embed more metadata with each prerequisite reference.
+
+// You can still populate the referenced Course data using Mongoose.
+
 const courseSchema = new Schema<TCourses>({
   title: {
     type: String,
@@ -217,3 +226,24 @@ export const CourseControllers = {
   deleteCourse,
 };
 ```
+
+## Dynamically Updating Multiple Fields
+
+![alt text](<WhatsApp Image 2025-04-09 at 11.11.57_ac084e10.jpg>)
+
+![alt text](<WhatsApp Image 2025-04-09 at 11.13.54_3975c1bb.jpg>)
+
+- First Of All we will separate prerequisite updates and regular info updates. both will be done sedately.
+
+  ![alt text](<WhatsApp Image 2025-04-09 at 11.16.35_5cc6ab00.jpg>)
+
+![alt text](<WhatsApp Image 2025-04-09 at 11.37.39_befe64e7.jpg>)
+
+- we have to filter which one will be deleted and which one will be added
+- first of all we have to clear the deleted course from the database then we will add
+
+  ![alt text](<WhatsApp Image 2025-04-09 at 11.17.33_414bcf4b.jpg>)
+
+- In zod we can make partial for making all optional
+
+![alt text](<WhatsApp Image 2025-04-09 at 11.39.10_af8953b3.jpg>)
