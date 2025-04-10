@@ -139,6 +139,19 @@ const assignFacultiesWithCourseIntoDB = async (
 
   return result;
 };
+const removeFacultiesWithCourseFromDB = async (
+  id: string,
+  payload: Partial<TCourseFaculty>,
+) => {
+  const result = await CourseFaculty.findByIdAndUpdate(
+    id,
+    { $pull: { faculties: { $in: payload } } },
+    { new: true },
+  );
+  //  here upsert:true is used since wer are going to create one time and then we are going to add new faculties if new faculties are hired. we are not going to create entirely. this is why we are using put method. It means thakle add hobe naile notun kore create hobe
+
+  return result;
+};
 export const CourseServices = {
   createCourseIntoDB,
   getAllCoursesFromDB,
@@ -146,4 +159,5 @@ export const CourseServices = {
   deleteCourseFromDB,
   updateCourseIntoDB,
   assignFacultiesWithCourseIntoDB,
+  removeFacultiesWithCourseFromDB,
 };
